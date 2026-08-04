@@ -36,7 +36,7 @@ function renderShell(activeIndex, pageTitle, subtitle, breadcrumb){
       <div class="org-name" id="orgName">AgroFood Industries Ltd.</div>
       <div class="org-plant" id="orgPlant">Plant: Main Factory</div>
     </div>
-    <nav class="nav">${nav}</nav>
+    <nav class="nav" onclick="closeMobileMenu()">${nav}</nav>
     <div class="sidebar-profile-wrap">
       <div class="sidebar-profile" id="sidebarProfile" onclick="toggleProfileMenu(event)">
         <div class="profile-avatar" id="profileAvatar">P</div>
@@ -174,7 +174,17 @@ document.addEventListener('click', e => {
 
 /* ── Mobile menu ── */
 function toggleMobileMenu(){
-  document.querySelector('.sidebar').classList.toggle('open');
+  const sb = document.querySelector('.sidebar');
+  const ov = document.querySelector('.sidebar-overlay');
+  sb.classList.toggle('open');
+  if(ov) ov.classList.toggle('show', sb.classList.contains('open'));
+}
+
+function closeMobileMenu(){
+  const sb = document.querySelector('.sidebar');
+  const ov = document.querySelector('.sidebar-overlay');
+  if(sb) sb.classList.remove('open');
+  if(ov) ov.classList.remove('show');
 }
 
 /* ── Notifications ── */

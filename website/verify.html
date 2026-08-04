@@ -96,8 +96,17 @@ body{margin:0;padding:0;background:var(--sidebar-bg);display:flex;min-height:100
 
 @media(max-width:800px){
   .auth-wrap{grid-template-columns:1fr}
-  .auth-left{padding:32px 24px;min-height:200px}
+  .auth-left{padding:32px 24px;min-height:auto;display:none}
   .auth-right{padding:24px}
+  .otp-group input{width:42px;height:48px;font-size:18px}
+  .auth-card{padding:28px 20px}
+  .demo-box{display:none}
+}
+@media(max-width:480px){
+  .auth-right{padding:20px 16px}
+  .auth-card{padding:24px 16px}
+  .otp-group{gap:8px}
+  .otp-group input{width:38px;height:44px;font-size:16px}
 }
 </style>
 </head>
