@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incident Management - AI-FSR</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="row">
+      <div></div>
+      <button class="btn btn-primary" onclick="toast('Incident form opened')">+ Report Incident</button>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="stat-card"><div class="stat-num" style="color:var(--primary)">18</div><div class="stat-sub">Total Incidents (YTD)</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--danger)">2</div><div class="stat-sub">Open</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--warning)">3</div><div class="stat-sub">In Progress</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--success)">4.2d</div><div class="stat-sub">Avg Resolution Time</div></div>
+    </div>
+
+    <div class="card mt-3">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted-foreground);font-weight:600;margin-bottom:14px">Incident Response Workflow</div>
+      <div class="workflow">
+        <div class="wf-step"><div class="wf-num" style="background:var(--primary)">1</div><div class="wf-label">Incident<br>Reported</div></div>
+        <div class="wf-line"></div>
+        <div class="wf-step"><div class="wf-num" style="background:var(--accent)">2</div><div class="wf-label">Risk<br>Assessment</div></div>
+        <div class="wf-line"></div>
+        <div class="wf-step"><div class="wf-num" style="background:var(--warning)">3</div><div class="wf-label">CAPA<br>Created</div></div>
+        <div class="wf-line"></div>
+        <div class="wf-step"><div class="wf-num" style="background:#8b5cf6">4</div><div class="wf-label">Verification</div></div>
+        <div class="wf-line"></div>
+        <div class="wf-step"><div class="wf-num" style="background:var(--success)">5</div><div class="wf-label">Closure</div></div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <h3 style="margin-bottom:12px">Incidents</h3>
+      <table>
+        <tr><th>ID</th><th>Type</th><th>Plant</th><th>Severity</th><th>Reported</th><th>Reporter</th><th>Status</th></tr>
+        <tr><td style="color:var(--primary);font-weight:500">INC-2026-018</td><td>Temperature Violation</td><td>Cold Storage</td><td><span class="pill red">&#9679; High</span></td><td>2026-08-02</td><td>Priya Sharma</td><td><span class="pill red">Open</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">INC-2026-017</td><td>Hygiene Issue</td><td>Main Factory</td><td><span class="pill yellow">&#9679; Medium</span></td><td>2026-07-30</td><td>Ravi Kumar</td><td><span class="pill yellow">In Progress</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">INC-2026-016</td><td>Equipment Failure</td><td>Processing Unit B</td><td><span class="pill green">&#9679; Low</span></td><td>2026-07-28</td><td>Amit Patel</td><td><span class="pill green">Closed</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">INC-2026-015</td><td>Customer Complaint</td><td>Main Factory</td><td><span class="pill red">&#9679; High</span></td><td>2026-07-25</td><td>Sunita Rao</td><td><span class="pill yellow">In Progress</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">INC-2026-014</td><td>Food Contamination</td><td>Main Factory</td><td><span class="pill red">&#9679; Critical</span></td><td>2026-07-20</td><td>Ravi Kumar</td><td><span class="pill green">Closed</span></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>renderShell(7,'Incident Management','Track, assess, and resolve food safety incidents with AI-assisted risk analysis','Incidents');</script>
+</body>
+</html>

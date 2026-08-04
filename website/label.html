@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Label Validator - AI-FSR</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+
+    <div class="grid grid-2">
+      <div class="card" style="border:2px dashed var(--border);text-align:center;padding:32px">
+        <div style="font-size:32px;margin-bottom:10px">&#9679;</div>
+        <h3>Upload Product Label</h3>
+        <div class="desc">PNG, JPG, or PDF — front and back of packaging</div>
+        <button class="btn btn-primary" onclick="toast('File selector opened')">Select Label Image</button>
+      </div>
+      <div class="card" style="text-align:center;padding:32px;border:2px solid var(--border)">
+        <div style="font-size:32px;margin-bottom:10px;color:var(--muted-foreground)">&#9679;</div>
+        <h3>Upload a label to begin validation</h3>
+        <div class="desc">AI will extract, classify, and validate against FSSAI regulations</div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted-foreground);font-weight:600;margin-bottom:12px">Validation Pipeline</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</span><b style="width:100px">OCR</b><span style="color:var(--muted-foreground);font-size:13px">Extract text from label</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</span><b style="width:100px">Ingredients</b><span style="color:var(--muted-foreground);font-size:13px">Parse &amp; classify ingredients</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</span><b style="width:100px">Allergens</b><span style="color:var(--muted-foreground);font-size:13px">Cross-check allergen declarations</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</span><b style="width:100px">Nutrition Facts</b><span style="color:var(--muted-foreground);font-size:13px">Validate per-100g values</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">5</span><b style="width:100px">Regulatory</b><span style="color:var(--muted-foreground);font-size:13px">Check FSSAI clause compliance</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">6</span><b style="width:100px">Barcode</b><span style="color:var(--muted-foreground);font-size:13px">Validate barcode format</span></div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <h3 style="margin-bottom:12px">Recent Validations</h3>
+      <table>
+        <tr><th>Label ID</th><th>Product</th><th>Date</th><th>Score</th><th>Violations</th><th>Action</th></tr>
+        <tr><td style="color:var(--primary);font-weight:500">LBL-089</td><td>Amul Butter 500g</td><td>2026-08-01</td><td style="font-weight:600">87%</td><td>2</td><td><button class="btn btn-outline btn-sm" onclick="toast('Report opened')">Report</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">LBL-088</td><td>Heritage Yogurt 400g</td><td>2026-07-30</td><td style="font-weight:600;color:var(--success)">94%</td><td>1</td><td><button class="btn btn-outline btn-sm" onclick="toast('Report opened')">Report</button></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>renderShell(6,'Food Label Validator','AI-powered validation against FSSAI labeling regulations (Food Safety & Standards Rules, 2011)','Label');</script>
+</body>
+</html>

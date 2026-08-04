@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports & Analytics - AI-FSR</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="row"><div></div><button class="btn btn-primary" onclick="toast('Generating report...')">Generate Report</button></div>
+
+    <div class="tabs" id="reportTabs">
+      <div class="tab active" onclick="switchTab(this)">Compliance</div>
+      <div class="tab" onclick="switchTab(this)">Audit</div>
+      <div class="tab" onclick="switchTab(this)">Incidents</div>
+      <div class="tab" onclick="switchTab(this)">Executive</div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-bottom:2px">Compliance Score Trend</h3>
+        <div class="desc">7-month rolling — Main Factory + all units</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">Jan</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:62%;height:100%;background:var(--primary);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600">62</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">Feb</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:73%;height:100%;background:var(--primary);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600">73</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">Mar</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:76%;height:100%;background:var(--primary);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600">76</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">Apr</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:79%;height:100%;background:var(--primary);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600">79</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">May</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:83%;height:100%;background:var(--primary);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600">83</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">Jun</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:87%;height:100%;background:var(--primary);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600">87</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:30px">Jul</span><div style="flex:1;height:8px;background:var(--secondary);border-radius:999px;overflow:hidden"><div style="width:91%;height:100%;background:var(--success);border-radius:999px"></div></div><span style="width:24px;text-align:right;font-weight:600;color:var(--success)">91</span></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <div><div style="font-size:20px;font-weight:800;color:var(--success)">91%</div><div style="font-size:11px;color:var(--muted-foreground)">Current Score</div></div>
+          <div><div style="font-size:20px;font-weight:800">79.6%</div><div style="font-size:11px;color:var(--muted-foreground)">YTD Average</div></div>
+          <div><div style="font-size:20px;font-weight:800">90%</div><div style="font-size:11px;color:var(--muted-foreground)">Target</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:12px">Compliance by Area</h3>
+        <div class="bar-row"><span class="bar-label">Personal Hygiene</span><div class="bar-track"><div class="bar-fill" style="width:96%;background:var(--success)"></div></div><span class="bar-val">96%</span></div>
+        <div class="bar-row"><span class="bar-label">HACCP Controls</span><div class="bar-track"><div class="bar-fill" style="width:92%;background:var(--success)"></div></div><span class="bar-val">92%</span></div>
+        <div class="bar-row"><span class="bar-label">Documentation</span><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--primary)"></div></div><span class="bar-val">88%</span></div>
+        <div class="bar-row"><span class="bar-label">Sanitation</span><div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--primary)"></div></div><span class="bar-val">85%</span></div>
+        <div class="bar-row"><span class="bar-label">Allergen Control</span><div class="bar-track"><div class="bar-fill" style="width:79%;background:var(--warning)"></div></div><span class="bar-val">79%</span></div>
+        <div class="bar-row"><span class="bar-label">Cold Chain</span><div class="bar-track"><div class="bar-fill" style="width:64%;background:var(--danger)"></div></div><span class="bar-val" style="color:var(--danger)">64%</span></div>
+        <div class="bar-row"><span class="bar-label">Pest Control</span><div class="bar-track"><div class="bar-fill" style="width:71%;background:var(--warning)"></div></div><span class="bar-val">71%</span></div>
+      </div>
+    </div>
+
+    <div class="grid grid-2 mt-3">
+      <div class="card">
+        <h3 style="margin-bottom:8px">Audits Conducted</h3>
+        <div class="desc">Monthly audit count — all types</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:8px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;height:50%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Jan</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;height:67%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Feb</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;height:50%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Mar</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;height:83%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Apr</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;height:67%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">May</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--success);border-radius:4px 4px 0 0;height:100%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Jun</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;height:83%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Jul</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px">Incidents Reported</h3>
+        <div class="desc">Monthly incident count</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:8px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:83%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Jan</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:50%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Feb</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:67%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Mar</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:33%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Apr</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:50%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">May</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:33%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Jun</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:var(--danger);border-radius:4px 4px 0 0;height:33%"></div><span style="font-size:10px;margin-top:4px;color:var(--muted-foreground)">Jul</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3>Available Reports</h3>
+        <span style="font-size:12px;color:var(--muted-foreground)">PDF and Excel exports</span>
+      </div>
+      <table>
+        <tr><th>Report Name</th><th>Format</th><th>Size</th><th>Generated</th><th>Status</th><th>Download</th></tr>
+        <tr><td style="font-weight:500">Monthly Compliance Report — July 2026</td><td><span class="pill red">PDF</span></td><td>2.4 MB</td><td>2026-08-01</td><td><span class="pill green">Ready</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Downloading...')">&#8681; Download</button></td></tr>
+        <tr><td style="font-weight:500">FSSAI Audit Summary Q2 2026</td><td><span class="pill red">PDF</span></td><td>1.8 MB</td><td>2026-07-15</td><td><span class="pill green">Ready</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Downloading...')">&#8681; Download</button></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>
+renderShell(9,'Reports & Analytics','Compliance trends, audit analytics, and AI-driven insights','Reports');
+function switchTab(el){document.querySelectorAll('#reportTabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');toast('Switched to '+el.textContent+' view');}
+</script>
+</body>
+</html>

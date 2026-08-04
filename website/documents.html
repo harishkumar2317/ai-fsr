@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document Intelligence - AI-FSR</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted-foreground);font-weight:600;margin-bottom:14px">AI Processing Pipeline</div>
+      <div class="pipeline">
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--primary)">&#8679;</div><div class="pipe-label">Upload<br>Document</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--success)">&#9638;</div><div class="pipe-label">OCR<br>Extraction</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--warning)">&#9670;</div><div class="pipe-label">Document<br>Classification</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:#8b5cf6">&#10022;</div><div class="pipe-label">AI<br>Summarization</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--danger)">&#9673;</div><div class="pipe-label">Clause<br>Extraction</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--accent)">&#9881;</div><div class="pipe-label">Compliance<br>Mapping</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--warning)">&#9650;</div><div class="pipe-label">Risk<br>Detection</div></div>
+        <div class="pipe-line"></div>
+        <div class="pipe-step"><div class="pipe-icon" style="background:var(--success)">&#10003;</div><div class="pipe-label">Compliance<br>Result</div></div>
+      </div>
+    </div>
+
+    <div class="card mt-3" style="border:2px dashed var(--border);text-align:center;padding:36px">
+      <div style="font-size:32px;margin-bottom:8px">&#8679;</div>
+      <div style="font-weight:600;font-size:15px;margin-bottom:4px">Drop documents here or click to upload</div>
+      <div style="color:var(--muted-foreground);font-size:13px;margin-bottom:12px">Supports PDF, DOC, DOCX, JPG, PNG — up to 50MB per file</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <span class="pill gray">SOP</span><span class="pill gray">HACCP Plan</span><span class="pill gray">GMP Manual</span><span class="pill gray">FSSAI License</span><span class="pill gray">Lab Report</span><span class="pill gray">Inspection Report</span>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3>Document Library</h3>
+        <select style="padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px"><option>All</option><option>HACCP</option><option>GMP</option><option>ISO 22000</option><option>FSSAI</option></select>
+      </div>
+      <table>
+        <tr><th>Document</th><th>Type</th><th>Size</th><th>Uploaded</th><th>Status</th><th>Risk Level</th><th>Actions</th></tr>
+        <tr><td style="font-weight:500">HACCP Plan - Dairy Processing v3.2<br><span style="font-size:11px;color:var(--muted-foreground)">DOC-001</span></td><td><span class="pill gray">HACCP</span></td><td>2.4 MB</td><td>2026-07-15</td><td><span class="pill green">Processed</span></td><td><span class="pill green">Low</span></td><td><button class="btn btn-outline btn-sm">View</button> <button class="btn btn-outline btn-sm">&#8681;</button></td></tr>
+        <tr><td style="font-weight:500">GMP Manual - Main Factory 2026<br><span style="font-size:11px;color:var(--muted-foreground)">DOC-002</span></td><td><span class="pill gray">GMP</span></td><td>5.1 MB</td><td>2026-07-10</td><td><span class="pill green">Processed</span></td><td><span class="pill yellow">Medium</span></td><td><button class="btn btn-outline btn-sm">View</button> <button class="btn btn-outline btn-sm">&#8681;</button></td></tr>
+        <tr><td style="font-weight:500">ISO 22000 Internal Audit Report Q2<br><span style="font-size:11px;color:var(--muted-foreground)">DOC-003</span></td><td><span class="pill gray">ISO 22000</span></td><td>1.8 MB</td><td>2026-07-08</td><td><span class="pill green">Processed</span></td><td><span class="pill red">High</span></td><td><button class="btn btn-outline btn-sm">View</button> <button class="btn btn-outline btn-sm">&#8681;</button></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>renderShell(5,'Document Intelligence','OCR + AI classification, summarization, and compliance mapping','Documents');</script>
+</body>
+</html>

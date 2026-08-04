@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organizations - AI-FSR</title><link rel="stylesheet" href="styles.css">
+<style>
+.org-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.org-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.org-stat-label{font-size:11px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.org-stat-val{font-size:24px;font-weight:800;margin-top:4px}
+.org-stat-sub{font-size:11px;color:var(--muted-foreground);margin-top:2px}
+.table-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.table-search{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 14px;width:260px;transition:.2s}
+.table-search:focus-within{border-color:var(--primary)}
+.table-search input{border:none;background:none;flex:1;font-size:13px;font-family:'Inter',sans-serif;color:var(--foreground);outline:none}
+.table-search input::placeholder{color:var(--muted-foreground)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:14px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border)}
+.modal-head h2{font-size:17px;font-weight:700}
+.modal-close{width:32px;height:32px;border:none;background:var(--muted);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);transition:.15s}
+.modal-close:hover{background:var(--danger);color:#fff}
+.modal-body{padding:20px 24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;font-weight:600;color:var(--foreground)}
+.form-input{padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif;color:var(--foreground);background:var(--background);transition:.2s}
+.form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(2,132,199,.1)}
+.form-input::placeholder{color:var(--muted-foreground)}
+select.form-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b8aaa' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(16,185,129,.1);color:#059669}
+.badge-yellow{background:rgba(245,158,11,.1);color:#d97706}
+.badge-red{background:rgba(239,68,68,.1);color:#dc2626}
+.badge-blue{background:rgba(2,132,199,.1);color:#0369a1}
+.row-actions{display:flex;gap:4px}
+.row-actions button{width:30px;height:30px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.12s;background:var(--muted);color:var(--muted-foreground)}
+.row-actions button:hover{background:var(--primary);color:#fff}
+.row-actions button.del:hover{background:var(--danger)}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted-foreground)}
+.empty-state-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+.confirm-modal{width:380px}
+.confirm-body{text-align:center;padding:10px 0}
+.confirm-icon{font-size:36px;margin-bottom:10px}
+.confirm-text{font-size:14px;color:var(--foreground);font-weight:500}
+.confirm-sub{font-size:12px;color:var(--muted-foreground);margin-top:4px}
+@media(max-width:900px){.org-stats{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+
+    <div class="org-stats" id="orgStats"></div>
+
+    <div class="card">
+      <div class="table-head">
+        <div style="display:flex;align-items:center;gap:12px">
+          <h3 style="margin:0">All Organizations</h3>
+          <span class="badge badge-blue" id="orgCount">0 total</span>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="table-search">
+            <span>&#128269;</span>
+            <input type="text" placeholder="Search organizations..." id="orgSearch" oninput="renderTable()">
+          </div>
+          <button class="btn btn-outline" onclick="openInviteModal()">&#128101; Invite People</button>
+          <button class="btn btn-primary" onclick="openAddModal()">+ Add Organization</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Organization</th><th>Plant / Unit</th><th>FSSAI License</th><th>Contact</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="orgTableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-state-icon">&#127970;</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px">No organizations found</div>
+        <div style="font-size:12px">Add your first organization to get started</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="orgModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Add Organization</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Organization Name *</label>
+          <input type="text" class="form-input" id="fName" placeholder="e.g., AgroFood Industries Ltd.">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plant / Unit Name *</label>
+          <input type="text" class="form-input" id="fPlant" placeholder="e.g., Main Factory">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plant Code</label>
+          <input type="text" class="form-input" id="fCode" placeholder="e.g., PLT-001">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-input" id="fAddress" placeholder="e.g., 123 Industrial Area, Mumbai">
+        </div>
+        <div class="form-group">
+          <label class="form-label">FSSAI License Number *</label>
+          <input type="text" class="form-input" id="fLicense" placeholder="e.g., 12345678901234">
+        </div>
+        <div class="form-group">
+          <label class="form-label">FSSAI Category</label>
+          <select class="form-input" id="fCategory">
+            <option value="State">State License</option>
+            <option value="Central">Central License</option>
+            <option value="Registration">Registration</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Person *</label>
+          <input type="text" class="form-input" id="fContact" placeholder="e.g., Priya Sharma">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Designation</label>
+          <input type="text" class="form-input" id="fDesignation" placeholder="e.g., Quality Manager">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="fEmail" placeholder="e.g., contact@company.in">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-input" id="fPhone" placeholder="e.g., +91 98765 43210">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" id="fStatus">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Pending">Pending Setup</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Compliance Score</label>
+          <input type="number" class="form-input" id="fScore" placeholder="e.g., 85" min="0" max="100">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveOrg()">Save Organization</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal confirm-modal">
+    <div class="modal-head">
+      <h2>Delete Organization</h2>
+      <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+    </div>
+    <div class="modal-body confirm-body">
+      <div class="confirm-icon">&#128465;</div>
+      <div class="confirm-text">Are you sure you want to delete this organization?</div>
+      <div class="confirm-sub" id="deleteName"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn" style="background:var(--danger);color:#fff" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Modal -->
+<div class="modal-overlay" id="inviteModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h2>Invite people to your team</h2>
+      <button class="modal-close" onclick="closeInviteModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:20px">Bring in the people you want to create and collaborate with together.</p>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-input" id="inviteName" placeholder="e.g., Ravi Kumar">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Email address</label>
+          <input type="email" class="form-input" id="inviteEmail" placeholder="colleague@company.in">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign role</label>
+          <select class="form-input" id="inviteRole">
+            <option value="viewer">Viewer — Read only</option>
+            <option value="food_safety_officer">Food Safety Officer</option>
+            <option value="auditor">Auditor</option>
+            <option value="admin">Admin — Full access</option>
+          </select>
+        </div>
+      </div>
+      <div id="inviteList" style="margin-top:20px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeInviteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="sendInvite()">&#128101; Confirm and invite</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>
+renderShell(1,'Organizations','Manage your organization and plant units','Organizations');
+
+const ORG_KEY='fsr_organizations';
+let organizations=JSON.parse(localStorage.getItem(ORG_KEY)||'null');
+let editingId=null;
+let deletingId=null;
+
+const DEMO_ORGS=[
+  {id:1,name:'AgroFood Industries Ltd.',plant:'Main Factory',code:'PLT-001',address:'Sector 15, Noida, UP',license:'12345678901234',category:'Central',contact:'Priya Sharma',designation:'Quality Manager',email:'priya.sharma@agrofood.in',phone:'+91 98765 43210',status:'Active',score:91,created:'2025-01-15'},
+  {id:2,name:'AgroFood Industries Ltd.',plant:'Unit B - Dairy',code:'PLT-002',address:'Sector 16, Noida, UP',license:'12345678901235',category:'Central',contact:'Ravi Kumar',designation:'Food Safety Officer',email:'ravi.kumar@agrofood.in',phone:'+91 98765 43211',status:'Active',score:87,created:'2025-03-20'},
+  {id:3,name:'FreshCatch Seafoods',plant:'Processing Plant',code:'PLT-003',address:'Mumbai Port, Maharashtra',license:'23456789012345',category:'Central',contact:'Anita Desai',designation:'QA Head',email:'anita@freshcatch.in',phone:'+91 97654 32109',status:'Active',score:78,created:'2025-06-10'},
+  {id:4,name:'GreenHarvest Organics',plant:'Packaging Unit',code:'PLT-004',address:'Pune, Maharashtra',license:'34567890123456',category:'State',contact:'Meera Joshi',designation:'Compliance Lead',email:'meera@greenharvest.in',phone:'+91 96543 21098',status:'Pending',score:0,created:'2026-07-01'},
+  {id:5,name:'SpiceRoute Foods',plant:'Spice Grinding Unit',code:'PLT-005',address:'Kochi, Kerala',license:'45678901234567',category:'State',contact:'Arjun Nair',designation:'Plant Manager',email:'arjun@spiceroute.in',phone:'+91 95432 10987',status:'Inactive',score:62,created:'2024-11-20'}
+];
+
+if(!organizations){organizations=DEMO_ORGS;save();}
+
+function save(){localStorage.setItem(ORG_KEY,JSON.stringify(organizations));}
+
+function getStats(){
+  const total=organizations.length;
+  const active=organizations.filter(o=>o.status==='Active').length;
+  const pending=organizations.filter(o=>o.status==='Pending').length;
+  const avgScore=total?Math.round(organizations.filter(o=>o.score>0).reduce((s,o)=>s+o.score,0)/Math.max(1,organizations.filter(o=>o.score>0).length)):0;
+  return{total,active,pending,avgScore};
+}
+
+function renderStats(){
+  const s=getStats();
+  document.getElementById('orgCount').textContent=s.total+' total';
+  document.getElementById('orgStats').innerHTML=`
+    <div class="org-stat"><div class="org-stat-label">Total Organizations</div><div class="org-stat-val">${s.total}</div><div class="org-stat-sub">across all plants</div></div>
+    <div class="org-stat"><div class="org-stat-label">Active</div><div class="org-stat-val" style="color:var(--success)">${s.active}</div><div class="org-stat-sub">currently operational</div></div>
+    <div class="org-stat"><div class="org-stat-label">Pending Setup</div><div class="org-stat-val" style="color:var(--warning)">${s.pending}</div><div class="org-stat-sub">awaiting configuration</div></div>
+    <div class="org-stat"><div class="org-stat-label">Avg Compliance</div><div class="org-stat-val" style="color:${s.avgScore>=80?'var(--success)':s.avgScore>=60?'var(--warning)':'var(--danger)'}">${s.avgScore}%</div><div class="org-stat-sub">across all units</div></div>`;
+}
+
+function renderTable(){
+  const q=(document.getElementById('orgSearch').value||'').toLowerCase();
+  const selId=localStorage.getItem('fsr_selected_org');
+  const filtered=organizations.filter(o=>
+    o.name.toLowerCase().includes(q)||o.plant.toLowerCase().includes(q)||o.license.includes(q)||o.contact.toLowerCase().includes(q)
+  );
+  const tbody=document.getElementById('orgTableBody');
+  const empty=document.getElementById('emptyState');
+  if(!filtered.length){
+    tbody.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  tbody.innerHTML=filtered.map(o=>{
+    const statusCls=o.status==='Active'?'green':o.status==='Pending'?'yellow':'red';
+    const scoreColor=o.score>=80?'var(--success)':o.score>=60?'var(--warning)':o.score>0?'var(--danger)':'var(--muted-foreground)';
+    const isSelected=selId==o.id;
+    return `<tr style="${isSelected?'background:rgba(2,132,199,.04)':''}">
+      <td><div style="font-weight:600">${esc(o.name)}</div><div style="font-size:11px;color:var(--muted-foreground)">${esc(o.code||'')}</div></td>
+      <td>${esc(o.plant)}<div style="font-size:11px;color:var(--muted-foreground)">${esc(o.address||'')}</div></td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">${esc(o.license)}</span><div style="font-size:11px;color:var(--muted-foreground)">${esc(o.category)}</div></td>
+      <td><div style="font-weight:500">${esc(o.contact)}</div><div style="font-size:11px;color:var(--muted-foreground)">${esc(o.email||'')}</div></td>
+      <td><span class="badge badge-${statusCls}">${esc(o.status)}</span></td>
+      <td style="text-align:center;font-weight:700;color:${scoreColor}">${o.score||'--'}</td>
+      <td><div class="row-actions">
+        ${isSelected?'<button title="Selected" style="background:var(--primary);color:#fff;pointer-events:none">&#10003;</button>':`<button title="Select" onclick="selectOrg(${o.id})">&#10003;</button>`}
+        <button title="Edit" onclick="openEditModal(${o.id})">&#9998;</button>
+        <button class="del" title="Delete" onclick="openDeleteModal(${o.id})">&#128465;</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(s){return(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function selectOrg(id){
+  localStorage.setItem('fsr_selected_org',id);
+  toast('Organization selected');
+  renderTable();
+}
+
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Add Organization';
+  document.getElementById('saveBtn').textContent='Save Organization';
+  clearForm();
+  document.getElementById('orgModal').classList.add('open');
+}
+
+function openEditModal(id){
+  const o=organizations.find(x=>x.id===id);
+  if(!o)return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='Edit Organization';
+  document.getElementById('saveBtn').textContent='Update Organization';
+  document.getElementById('fName').value=o.name;
+  document.getElementById('fPlant').value=o.plant;
+  document.getElementById('fCode').value=o.code||'';
+  document.getElementById('fAddress').value=o.address||'';
+  document.getElementById('fLicense').value=o.license;
+  document.getElementById('fCategory').value=o.category;
+  document.getElementById('fContact').value=o.contact;
+  document.getElementById('fDesignation').value=o.designation||'';
+  document.getElementById('fEmail').value=o.email||'';
+  document.getElementById('fPhone').value=o.phone||'';
+  document.getElementById('fStatus').value=o.status;
+  document.getElementById('fScore').value=o.score||'';
+  document.getElementById('orgModal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('orgModal').classList.remove('open');}
+
+function clearForm(){
+  ['fName','fPlant','fCode','fAddress','fLicense','fContact','fDesignation','fEmail','fPhone','fScore'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fCategory').value='State';
+  document.getElementById('fStatus').value='Active';
+}
+
+function saveOrg(){
+  const name=document.getElementById('fName').value.trim();
+  const plant=document.getElementById('fPlant').value.trim();
+  const license=document.getElementById('fLicense').value.trim();
+  const contact=document.getElementById('fContact').value.trim();
+  if(!name||!plant||!license||!contact){toast('Please fill required fields');return;}
+  const data={
+    name,plant,
+    code:document.getElementById('fCode').value.trim(),
+    address:document.getElementById('fAddress').value.trim(),
+    license,
+    category:document.getElementById('fCategory').value,
+    contact,
+    designation:document.getElementById('fDesignation').value.trim(),
+    email:document.getElementById('fEmail').value.trim(),
+    phone:document.getElementById('fPhone').value.trim(),
+    status:document.getElementById('fStatus').value,
+    score:parseInt(document.getElementById('fScore').value)||0
+  };
+  if(editingId){
+    const idx=organizations.findIndex(o=>o.id===editingId);
+    if(idx>=0){organizations[idx]={...organizations[idx],...data};}
+    toast('Organization updated');
+  } else {
+    data.id=Date.now();
+    data.created=new Date().toISOString().slice(0,10);
+    organizations.push(data);
+    toast('Organization added');
+  }
+  save();
+  renderStats();
+  renderTable();
+  closeModal();
+}
+
+function openDeleteModal(id){
+  const o=organizations.find(x=>x.id===id);
+  if(!o)return;
+  deletingId=id;
+  document.getElementById('deleteName').textContent=o.name+' - '+o.plant;
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('open');deletingId=null;}
+
+function confirmDelete(){
+  if(!deletingId)return;
+  organizations=organizations.filter(o=>o.id!==deletingId);
+  save();
+  renderStats();
+  renderTable();
+  closeDeleteModal();
+  toast('Organization deleted');
+}
+
+/* ── Invite ── */
+function openInviteModal(){
+  document.getElementById('inviteName').value='';
+  document.getElementById('inviteEmail').value='';
+  document.getElementById('inviteRole').value='viewer';
+  document.getElementById('inviteList').innerHTML='<div style="font-size:12px;color:var(--muted-foreground);text-align:center;padding:10px">Loading members...</div>';
+  document.getElementById('inviteModal').classList.add('open');
+  loadMembers();
+}
+
+function closeInviteModal(){document.getElementById('inviteModal').classList.remove('open');}
+
+async function loadMembers(){
+  try{
+    const data = await API.invite.list();
+    const el = document.getElementById('inviteList');
+    if(!data||!data.members||!data.members.length){el.innerHTML='<div style="font-size:12px;color:var(--muted-foreground);text-align:center;padding:10px">No team members yet</div>';return;}
+    el.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:8px">Team Members ('+data.members.length+')</div>'+
+      data.members.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${(m.name||'?').charAt(0)}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${m.name||m.email}</div><div style="font-size:11px;color:var(--muted-foreground)">${m.email}</div></div>
+        <span class="badge badge-${m.role==='admin'?'blue':m.role==='auditor'?'green':'yellow'}" style="font-size:10px">${m.role}</span>
+      </div>`).join('');
+  }catch(e){}
+}
+
+async function sendInvite(){
+  const name=document.getElementById('inviteName').value.trim();
+  const email=document.getElementById('inviteEmail').value.trim();
+  const role=document.getElementById('inviteRole').value;
+  if(!email){toast('Enter an email address');return;}
+  if(!name){toast('Enter a name');return;}
+  try{
+    await API.invite.send(email, role, undefined, name);
+    toast('Invitation sent to '+name);
+    document.getElementById('inviteName').value='';
+    document.getElementById('inviteEmail').value='';
+    loadMembers();
+  }catch(e){toast('Failed to send invite');}
+}
+
+renderStats();
+renderTable();
+</script>
+</body>
+</html>

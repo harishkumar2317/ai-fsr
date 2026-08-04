@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compliance Checklist - AI-FSR</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="row">
+      <div></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="toast('New item added')">+ Add Item</button>
+        <button class="btn btn-outline" onclick="toast('Checklist submitted')">Submit Checklist</button>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="stat-card" style="border-left:4px solid var(--success)">
+        <div class="stat-num" style="color:var(--success)">6</div>
+        <div class="stat-sub">Compliant</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--danger)">
+        <div class="stat-num" style="color:var(--danger)">1</div>
+        <div class="stat-sub">Non-Compliant</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--warning)">
+        <div class="stat-num" style="color:var(--warning)">2</div>
+        <div class="stat-sub">Pending Review</div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="tabs" id="checklistTabs">
+        <div class="tab active" onclick="switchTab(this)">Daily Checklist</div>
+        <div class="tab" onclick="switchTab(this)">Weekly Checklist</div>
+        <div class="tab" onclick="switchTab(this)">Monthly Checklist</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <span style="font-size:12px;color:var(--muted-foreground);margin-right:8px">Category:</span>
+        <select style="padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px"><option>All</option><option>Personal Hygiene</option><option>Temperature Control</option><option>Pest Control</option><option>Allergen Control</option><option>HACCP</option><option>Sanitation</option></select>
+      </div>
+      <table>
+        <tr><th>ID</th><th>Category</th><th>Description</th><th>Regulation</th><th>Assignee</th><th>Due</th><th>Status</th><th>Action</th></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-001</td><td><span class="pill gray">Personal Hygiene</span></td><td>Hand washing facilities available and functional at all entry points</td><td>GMP 4.2.1</td><td>Ravi Kumar</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-002</td><td><span class="pill gray">Personal Hygiene</span></td><td>All staff wearing appropriate PPE (gloves, hairnet, aprons)</td><td>GMP 4.2.3</td><td>Ravi Kumar</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-003</td><td><span class="pill gray">Temperature Control</span></td><td>Cold storage units maintaining 2°C–8°C (chilled zone)</td><td>FSSAI 2.4.6</td><td>Priya Sharma</td><td>2026-08-03</td><td><span class="pill red">&#9679; Non-Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-004</td><td><span class="pill gray">Temperature Control</span></td><td>Frozen storage maintaining -18°C or below</td><td>FSSAI 2.4.7</td><td>Priya Sharma</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-005</td><td><span class="pill gray">Pest Control</span></td><td>Pest control logs updated and bait stations inspected</td><td>GHP 3.1.2</td><td>Amit Patel</td><td>2026-08-05</td><td><span class="pill yellow">&#9679; Pending</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-006</td><td><span class="pill gray">Allergen Control</span></td><td>Allergen cleaning validation records maintained</td><td>FSSAI 3.1.8</td><td>Sunita Rao</td><td>2026-08-05</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-007</td><td><span class="pill gray">HACCP</span></td><td>CCP monitoring records verified and signed off</td><td>HACCP Principle 4</td><td>Ravi Kumar</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-008</td><td><span class="pill gray">HACCP</span></td><td>Corrective action records for any CCP deviation</td><td>HACCP Principle 5</td><td>Sunita Rao</td><td>—</td><td><span class="pill gray">N/A</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CHK-009</td><td><span class="pill gray">Sanitation</span></td><td>Equipment cleaning and sanitization logs completed</td><td>GMP 5.1.1</td><td>Amit Patel</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>
+renderShell(3,'Compliance Checklist','Daily inspection — Tuesday, 4 August 2026','Checklist');
+
+function switchTab(el){
+  document.querySelectorAll('#checklistTabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  toast('Switched to '+el.textContent);
+}
+</script>
+</body>
+</html>

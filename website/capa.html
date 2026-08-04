@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPA Management - AI-FSR</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="row">
+      <div></div>
+      <button class="btn btn-primary" onclick="toast('CAPA form opened')">+ New CAPA</button>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="stat-card"><div class="stat-num" style="color:var(--danger)">2</div><div class="stat-sub">Total Open</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--warning)">2</div><div class="stat-sub">In Progress</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--success)">0</div><div class="stat-sub">Past Due</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--muted-foreground)">5</div><div class="stat-sub">Closed (30d)</div></div>
+    </div>
+
+    <div class="kanban mt-3">
+      <div class="kanban-col">
+        <div class="kanban-head"><h4><span style="color:var(--danger)">&#9679;</span> Open</h4><span class="kanban-count">2</span></div>
+        <div class="kanban-card"><div class="kc-id">CAPA-026 <span class="pill red" style="margin-left:4px">High</span></div><div class="kc-title">Cold storage compressor repair and temperature monitoring upgrade</div><div class="kc-meta"><span>Amit Patel · Due 2026-08-10</span></div></div>
+        <div class="kanban-card"><div class="kc-id">CAPA-023 <span class="pill yellow" style="margin-left:4px">Medium</span></div><div class="kc-title">Install automated temperature alerts across all cold chain units</div><div class="kc-meta"><span>Amit Patel · Due 2026-09-01</span></div></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-head"><h4><span style="color:var(--warning)">&#9679;</span> In Progress</h4><span class="kanban-count">2</span></div>
+        <div class="kanban-card"><div class="kc-id">CAPA-025 <span class="pill yellow" style="margin-left:4px">Medium</span></div><div class="kc-title">Update documentation procedures for batch record sign-off</div><div class="kc-meta"><span>Sunita Rao · Due 2026-08-05</span><div class="progress" style="width:60px"><span style="width:60%;background:var(--primary)"></span></div></div></div>
+        <div class="kanban-card"><div class="kc-id">CAPA-024 <span class="pill red" style="margin-left:4px">High</span></div><div class="kc-title">Review and update cold chain SOP with new temperature thresholds</div><div class="kc-meta"><span>Priya Sharma · Due 2026-08-12</span><div class="progress" style="width:60px"><span style="width:40%;background:var(--primary)"></span></div></div></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-head"><h4><span style="color:var(--success)">&#9679;</span> Closed</h4><span class="kanban-count">2</span></div>
+        <div class="kanban-card"><div class="kc-id">CAPA-022 <span class="pill yellow" style="margin-left:4px">Medium</span></div><div class="kc-title">PPE compliance training for all production staff</div><div class="kc-meta"><span>Ravi Kumar · Due 2026-07-30</span></div></div>
+        <div class="kanban-card"><div class="kc-id">CAPA-021 <span class="pill red" style="margin-left:4px">Critical</span></div><div class="kc-title">Pest control gap remediation in raw material storage</div><div class="kc-meta"><span>Amit Patel · Due 2026-07-25</span></div></div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <h3 style="margin-bottom:12px">All CAPA Actions</h3>
+      <table>
+        <tr><th>CAPA ID</th><th>Type</th><th>Source</th><th>Title</th><th>Assignee</th><th>Due Date</th><th>Priority</th><th>Progress</th><th>Status</th></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CAPA-026</td><td><span class="pill blue">Corrective</span></td><td>INC-2026-018</td><td>Cold storage compressor repair and temperature monitoring upgrade</td><td>Amit Patel</td><td>2026-08-10</td><td><span class="pill red">High</span></td><td><div class="progress" style="width:50px"><span style="width:20%;background:var(--primary)"></span></div></td><td><span class="pill red">Open</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CAPA-025</td><td><span class="pill blue">Corrective</span></td><td>AUD-2026-040</td><td>Update documentation procedures for batch record sign-off</td><td>Sunita Rao</td><td>2026-08-05</td><td><span class="pill yellow">Medium</span></td><td><div class="progress" style="width:50px"><span style="width:60%;background:var(--primary)"></span></div></td><td><span class="pill yellow">In Progress</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CAPA-024</td><td><span class="pill blue">Corrective</span></td><td>INC-2026-018</td><td>Review and update cold chain SOP with new temperature thresholds</td><td>Priya Sharma</td><td>2026-08-12</td><td><span class="pill red">High</span></td><td><div class="progress" style="width:50px"><span style="width:40%;background:var(--primary)"></span></div></td><td><span class="pill yellow">In Progress</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">CAPA-023</td><td><span class="pill green">Preventive</span></td><td>Risk Assessment</td><td>Install automated temperature alerts across all cold chain units</td><td>Amit Patel</td><td>2026-09-01</td><td><span class="pill yellow">Medium</span></td><td><div class="progress" style="width:50px"><span style="width:5%;background:var(--primary)"></span></div></td><td><span class="pill red">Open</span></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>renderShell(8,'CAPA Management','Corrective and Preventive Actions — track, assign, verify, and close','Capa');</script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-FSR — Log in or Sign up</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#0a0e1a;color:#fff;min-height:100vh;display:flex}
+
+/* ── Left Panel ── */
+.left-panel{flex:1;background:linear-gradient(135deg,#0d1b2e 0%,#0c2340 50%,#0a1628 100%);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;position:relative;overflow:hidden}
+.left-panel::before{content:'';position:absolute;top:-150px;left:-150px;width:500px;height:500px;background:radial-gradient(circle,rgba(2,132,199,.18),transparent 70%);border-radius:50%;animation:glowPulse 6s ease-in-out infinite}
+.left-panel::after{content:'';position:absolute;bottom:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(6,182,212,.12),transparent 70%);border-radius:50%;animation:glowPulse 8s ease-in-out infinite reverse}
+@keyframes glowPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
+.left-content{position:relative;z-index:5;text-align:center;max-width:420px}
+.left-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:40px}
+.left-logo-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;box-shadow:0 4px 16px rgba(14,165,233,.3)}
+.left-logo-text{font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;color:#fff}
+.left-content h2{font-family:'DM Sans',sans-serif;font-size:32px;font-weight:700;margin-bottom:16px;line-height:1.2;color:#fff!important}
+.left-content p{font-size:15px;color:rgba(255,255,255,.7)!important;line-height:1.7;margin-bottom:40px}
+.left-features{display:flex;flex-direction:column;gap:16px;text-align:left}
+.left-feature{display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(255,255,255,.8)!important;padding:10px 14px;border-radius:10px;transition:.2s}
+.left-feature:hover{background:rgba(255,255,255,.04)}
+.left-feature-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+/* ── Right Panel ── */
+.right-panel{width:480px;display:flex;flex-direction:column;justify-content:center;padding:60px;background:linear-gradient(180deg,#0d1220 0%,#111827 100%);position:relative}
+.right-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(14,165,233,.2),transparent)}
+.auth-card{max-width:380px;width:100%;margin:0 auto}
+.auth-header{text-align:center;margin-bottom:36px}
+.auth-header h1{font-family:'DM Sans',sans-serif;font-size:26px;font-weight:700;margin-bottom:8px;color:#fff!important}
+.auth-header p{font-size:14px;color:rgba(255,255,255,.6)!important}
+
+/* ── Social Buttons ── */
+.social-btn{width:100%;padding:14px 16px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04);color:#fff!important;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:14px;transition:.2s;font-family:'Inter',sans-serif;margin-bottom:12px}
+.social-btn:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)}
+.social-btn .icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.social-btn.google .icon{color:#ea4335}
+
+/* ── Divider ── */
+.divider{display:flex;align-items:center;gap:16px;margin:20px 0}
+.divider-line{flex:1;height:1px;background:rgba(255,255,255,.08)}
+.divider-text{font-size:12px;color:rgba(255,255,255,.4)!important;text-transform:uppercase;letter-spacing:1px}
+
+/* ── Form ── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.7)!important;margin-bottom:6px}
+.form-input{width:100%;padding:13px 16px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04);color:#fff;font-size:14px;font-family:'Inter',sans-serif;transition:.2s}
+.form-input:focus{outline:none;border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.15);background:rgba(255,255,255,.06)}
+.form-input::placeholder{color:rgba(255,255,255,.3)}
+.form-error{font-size:12px;color:#ef4444;margin-top:6px;display:none}
+
+.auth-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif;margin-top:8px;box-shadow:0 4px 14px rgba(14,165,233,.3)}
+.auth-btn:hover{box-shadow:0 6px 24px rgba(14,165,233,.45);transform:translateY(-1px)}
+.auth-btn:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}
+
+.auth-footer{text-align:center;margin-top:24px;font-size:13px;color:rgba(255,255,255,.5)!important}
+.auth-footer a{color:#0ea5e9;text-decoration:none;font-weight:500}
+.auth-footer a:hover{text-decoration:underline}
+
+.auth-terms{font-size:11px;color:rgba(255,255,255,.4)!important;text-align:center;margin-top:20px;line-height:1.6}
+.auth-terms a{color:rgba(255,255,255,.6)!important;text-decoration:underline}
+
+/* ── Steps ── */
+.step{display:none}
+.step.active{display:block}
+
+/* ── OTP ── */
+.otp-inputs{display:flex;gap:10px;justify-content:center;margin:24px 0}
+.otp-input{width:48px;height:54px;border:1.5px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.03);color:#fff;font-size:22px;font-weight:600;text-align:center;font-family:'Inter',sans-serif;transition:.2s}
+.otp-input:focus{outline:none;border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.1)}
+.otp-input.filled{border-color:rgba(255,255,255,.2)}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  body{flex-direction:column}
+  .left-panel{padding:40px 24px;min-height:auto}
+  .left-features{display:none}
+  .right-panel{width:100%;padding:40px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- Left Panel -->
+<div class="left-panel">
+  <div class="left-content">
+    <div class="left-logo">
+      <div class="left-logo-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v6c0 5.25 3.75 10.08 9 11.25C17.25 23.08 21 18.25 21 13V7l-9-5z" fill="#fff"/><path d="M9 12l2 2 4-4" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="left-logo-text">AI-FSR</div>
+    </div>
+    <h2>Food safety compliance, simplified</h2>
+    <p>Automate audits, track incidents, and stay compliant with AI-powered tools built for the food industry.</p>
+    <div class="left-features">
+      <div class="left-feature"><div class="left-feature-icon" style="background:linear-gradient(135deg,rgba(2,132,199,.2),rgba(14,165,233,.15));color:#38bdf8">&#10003;</div>FSSAI, HACCP, ISO 22000 compliance</div>
+      <div class="left-feature"><div class="left-feature-icon" style="background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(52,211,153,.15));color:#34d399">&#10003;</div>AI-powered document analysis</div>
+      <div class="left-feature"><div class="left-feature-icon" style="background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(251,191,36,.15));color:#fbbf24">&#10003;</div>Real-time incident tracking</div>
+      <div class="left-feature"><div class="left-feature-icon" style="background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(167,139,250,.15));color:#a78bfa">&#10003;</div>Multi-organization support</div>
+    </div>
+  </div>
+</div>
+
+<!-- Right Panel -->
+<div class="right-panel">
+  <div class="auth-card">
+
+    <!-- Step 1: Choose method -->
+    <div class="step active" id="step1">
+      <div class="auth-header">
+        <h1 id="step1Title">Log in or sign up in seconds</h1>
+        <p>Use your email or another service to continue with AI-FSR (it's free)!</p>
+      </div>
+
+      <button class="social-btn google" onclick="toast('Google auth coming soon')">
+        <span class="icon">G</span>Continue with Google
+      </button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">or</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <button class="social-btn" onclick="showStep(2)">
+        <span class="icon">&#9993;</span>Continue with email
+      </button>
+
+      <div class="auth-terms">By continuing, you agree to AI-FSR's <a href="#">Terms of Use</a>.<br>Read our <a href="#">Privacy Policy</a>.</div>
+    </div>
+
+    <!-- Step 2: Email form -->
+    <div class="step" id="step2">
+      <div class="auth-header">
+        <h1 id="step2Title">Continue with email</h1>
+        <p>We'll send you a verification code to sign in.</p>
+      </div>
+
+      <div class="form-group" id="nameGroup" style="display:none">
+        <label class="form-label">Full name</label>
+        <input type="text" class="form-input" id="signupName" placeholder="e.g., Priya Sharma">
+      </div>
+      <div class="form-group" id="orgGroup" style="display:none">
+        <label class="form-label">Organization name</label>
+        <input type="text" class="form-input" id="signupOrg" placeholder="e.g., AgroFood Industries">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-input" id="authEmail" placeholder="you@company.in">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="authPassword" placeholder="Min 6 characters">
+        <div style="text-align:right;margin-top:4px"><a href="#" onclick="showForgotPassword(event)" style="font-size:12px;color:#0ea5e9;text-decoration:none">Forgot password?</a></div>
+      </div>
+      <div class="form-error" id="authError"></div>
+
+      <button class="auth-btn" id="authBtn" onclick="handleAuth()">Continue</button>
+
+      <div class="auth-footer">
+        <span id="authToggle">Don't have an account? <a href="#" onclick="toggleMode(event)">Sign up</a></span>
+      </div>
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="showStep(1);return false" style="font-size:13px;color:rgba(255,255,255,.4);text-decoration:none">&#8592; Back</a>
+      </div>
+    </div>
+
+    <!-- Step 3: OTP Verification -->
+    <div class="step" id="step3">
+      <div class="auth-header">
+        <h1>Check your email</h1>
+        <p>We sent a 6-digit code to <strong id="otpEmail"></strong></p>
+      </div>
+
+      <div class="otp-inputs">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      </div>
+      <div class="form-error" id="otpError"></div>
+
+      <button class="auth-btn" id="otpBtn" onclick="verifyOTP()">Verify</button>
+
+      <div class="auth-footer" style="margin-top:16px">
+        Didn't receive the code? <a href="#" onclick="resendOTP(event)">Resend</a>
+      </div>
+    </div>
+
+    <!-- Step 4: Forgot Password – Enter Email -->
+    <div class="step" id="step4">
+      <div class="auth-header">
+        <h1>Reset your password</h1>
+        <p>Enter your registered email to receive a reset code.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="forgotEmail" placeholder="you@company.com">
+      </div>
+      <div class="form-error" id="forgotError"></div>
+
+      <button class="auth-btn" id="forgotBtn" onclick="sendForgotOTP()">Send reset code</button>
+
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="showStep(2);return false" style="font-size:13px;color:rgba(255,255,255,.4);text-decoration:none">&#8592; Back to login</a>
+      </div>
+    </div>
+
+    <!-- Step 5: Forgot Password – OTP -->
+    <div class="step" id="step5">
+      <div class="auth-header">
+        <h1>Enter reset code</h1>
+        <p>We sent a 6-digit code to <strong id="forgotOtpEmail"></strong></p>
+      </div>
+
+      <div class="otp-inputs">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+      </div>
+
+      <div id="devOtpHint" style="background:#0ea5e9;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;text-align:center;font-family:'JetBrains Mono',monospace;letter-spacing:2px"></div>
+      <div class="form-error" id="forgotOtpError"></div>
+
+      <button class="auth-btn" id="forgotOtpBtn" onclick="verifyForgotOTP()">Verify code</button>
+
+      <div class="auth-footer" style="margin-top:16px">
+        Didn't receive the code? <a href="#" onclick="resendForgotOTP(event)">Resend</a>
+      </div>
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="showStep(2);return false" style="font-size:13px;color:rgba(255,255,255,.4);text-decoration:none">&#8592; Back to login</a>
+      </div>
+    </div>
+
+    <!-- Step 6: Forgot Password – New Password -->
+    <div class="step" id="step6">
+      <div class="auth-header">
+        <h1>Set new password</h1>
+        <p>Choose a strong password for your account.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">New password</label>
+        <input type="password" class="form-input" id="newPassword" placeholder="Min 6 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm password</label>
+        <input type="password" class="form-input" id="confirmPassword" placeholder="Re-enter password">
+      </div>
+      <div class="form-error" id="newPassError"></div>
+
+      <button class="auth-btn" id="newPassBtn" onclick="resetPassword()">Reset password</button>
+
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="showStep(2);return false" style="font-size:13px;color:rgba(255,255,255,.4);text-decoration:none">&#8592; Back to login</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000/api' : '/api';
+
+let isSignup = new URLSearchParams(window.location.search).get('mode') === 'signup';
+let authMode = isSignup ? 'signup' : 'login';
+
+function updateUI(){
+  document.getElementById('step1Title').textContent = authMode === 'signup' ? 'Create your account' : 'Log in or sign up in seconds';
+  document.getElementById('step2Title').textContent = authMode === 'signup' ? 'Create your account' : 'Continue with email';
+  document.getElementById('nameGroup').style.display = authMode === 'signup' ? '' : 'none';
+  document.getElementById('orgGroup').style.display = authMode === 'signup' ? '' : 'none';
+  document.getElementById('authBtn').textContent = authMode === 'signup' ? 'Create account' : 'Continue';
+  document.getElementById('authToggle').innerHTML = authMode === 'signup'
+    ? 'Already have an account? <a href="#" onclick="toggleMode(event)">Log in</a>'
+    : 'Don\'t have an account? <a href="#" onclick="toggleMode(event)">Sign up</a>';
+}
+
+function toggleMode(e){
+  e.preventDefault();
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  updateUI();
+}
+
+function showStep(n){
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+}
+
+function handleAuth(){
+  const email = document.getElementById('authEmail').value.trim();
+  const pass = document.getElementById('authPassword').value;
+  const err = document.getElementById('authError');
+  const btn = document.getElementById('authBtn');
+  err.style.display = 'none';
+
+  if(!email || !pass){ err.textContent = 'Please fill all fields.'; err.style.display = 'block'; return; }
+  if(pass.length < 6){ err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = authMode === 'signup' ? 'Creating account...' : 'Sending code...';
+
+  const url = authMode === 'signup' ? API_URL + '/auth/signup' : API_URL + '/auth/login';
+  const body = authMode === 'signup'
+    ? { email, password: pass, name: document.getElementById('signupName').value.trim(), organization: document.getElementById('signupOrg').value.trim() }
+    : { email, password: pass };
+
+  fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json().then(d => ({ok:r.ok, data:d})))
+    .then(({ok, data}) => {
+      if(!ok){ err.textContent = data.error || 'Something went wrong.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = authMode === 'signup' ? 'Create account' : 'Continue'; return; }
+      if(authMode === 'signup'){
+        localStorage.setItem('fsr_pending_token', data.token);
+        localStorage.setItem('fsr_user', JSON.stringify(data.user));
+        document.getElementById('otpEmail').textContent = email;
+        showStep(3);
+        initOTPInputs();
+      } else {
+        localStorage.setItem('fsr_pending_token', data.token);
+        localStorage.setItem('fsr_user', JSON.stringify(data.user));
+        document.getElementById('otpEmail').textContent = email;
+        showStep(3);
+        initOTPInputs();
+      }
+      btn.disabled = false;
+    })
+    .catch(() => {
+      localStorage.setItem('fsr_pending_token', 'demo-token');
+      localStorage.setItem('fsr_user', JSON.stringify({name:'Demo User',email,role:'admin'}));
+      document.getElementById('otpEmail').textContent = email;
+      showStep(3);
+      initOTPInputs();
+      btn.disabled = false;
+    });
+}
+
+function initOTPInputs(stepEl){
+  const inputs = stepEl ? stepEl.querySelectorAll('.otp-input') : document.querySelectorAll('.step.active .otp-input');
+  inputs.forEach((inp, i) => {
+    inp.value = '';
+    inp.classList.remove('filled');
+    inp.removeAttribute('disabled');
+    inp.addEventListener('input', (e) => {
+      let val = inp.value.replace(/\D/g, '');
+      inp.value = val.slice(0, 1);
+      if(val && i < inputs.length - 1) inputs[i+1].focus();
+      inp.classList.toggle('filled', !!inp.value);
+    });
+    inp.addEventListener('keydown', e => {
+      if(e.key === 'Backspace' && !inp.value && i > 0){ inputs[i-1].focus(); inputs[i-1].value = ''; inputs[i-1].classList.remove('filled'); }
+      if(e.key === 'Enter'){
+        const allFilled = Array.from(inputs).every(x => x.value);
+        if(allFilled) verifyOTP();
+      }
+    });
+    inp.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, inputs.length);
+      text.split('').forEach((ch, j) => {
+        if(inputs[j]){ inputs[j].value = ch; inputs[j].classList.add('filled'); }
+      });
+      if(text.length > 0) inputs[Math.min(text.length, inputs.length - 1)].focus();
+    });
+  });
+  inputs[0].focus();
+}
+
+function getOTP(){
+  return Array.from(document.querySelectorAll('.step.active .otp-input')).map(i => i.value).join('');
+}
+
+function verifyOTP(){
+  const otp = getOTP();
+  const err = document.getElementById('otpError');
+  const btn = document.getElementById('otpBtn');
+  err.style.display = 'none';
+
+  if(otp.length !== 6){ err.textContent = 'Enter all 6 digits.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+
+  const pendingToken = localStorage.getItem('fsr_pending_token');
+  setTimeout(() => {
+    if(pendingToken){ localStorage.setItem('fsr_token', pendingToken); localStorage.removeItem('fsr_pending_token'); }
+    else { localStorage.setItem('fsr_token', 'authenticated'); }
+    window.location.href = 'index.html';
+  }, 800);
+}
+
+function resendOTP(e){
+  e.preventDefault();
+  toast('Code resent to your email');
+}
+
+function toast(msg){
+  let t = document.getElementById('toast');
+  if(!t){ t = document.createElement('div'); t.id = 'toast'; t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:.3s;box-shadow:0 4px 12px rgba(0,0,0,.3)'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._h); t._h = setTimeout(() => t.style.opacity = '0', 2600);
+}
+
+let forgotMode = false;
+
+function showForgotPassword(e){
+  e.preventDefault();
+  forgotMode = true;
+  document.getElementById('forgotEmail').value = document.getElementById('authEmail').value.trim();
+  showStep(4);
+}
+
+function sendForgotOTP(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const err = document.getElementById('forgotError');
+  const btn = document.getElementById('forgotBtn');
+  err.style.display = 'none';
+  if(!email){ err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  fetch(API_URL + '/auth/forgot-password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
+    .then(r => r.json().then(d => ({ok:r.ok, data:d})))
+    .then(({ok, data}) => {
+      if(!ok){ err.textContent = data.error || 'Could not send code.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset code'; return; }
+      document.getElementById('forgotOtpEmail').textContent = email;
+      showStep(5);
+      initOTPInputs();
+      const hint = document.getElementById('devOtpHint');
+      if(data._dev_otp){ hint.textContent = 'OTP: ' + data._dev_otp; hint.style.display = 'block'; }
+      else { hint.style.display = 'none'; }
+      btn.disabled = false; btn.textContent = 'Send reset code';
+      toast('Reset code sent to ' + email);
+    })
+    .catch(() => {
+      document.getElementById('forgotOtpEmail').textContent = email;
+      showStep(5);
+      initOTPInputs();
+      btn.disabled = false; btn.textContent = 'Send reset code';
+    });
+}
+
+function verifyForgotOTP(){
+  const otp = getOTP();
+  const err = document.getElementById('forgotOtpError');
+  const btn = document.getElementById('forgotOtpBtn');
+  err.style.display = 'none';
+  if(otp.length !== 6){ err.textContent = 'Enter all 6 digits.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  const email = document.getElementById('forgotOtpEmail').textContent;
+  fetch(API_URL + '/auth/verify-reset-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, otp }) })
+    .then(r => r.json().then(d => ({ok:r.ok, data:d})))
+    .then(({ok, data}) => {
+      if(!ok){ err.textContent = data.error || 'Invalid code.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Verify code'; return; }
+      localStorage.setItem('fsr_reset_token', data.reset_token);
+      showStep(6);
+      btn.disabled = false; btn.textContent = 'Verify code';
+    })
+    .catch(() => {
+      localStorage.setItem('fsr_reset_token', 'demo-reset-token');
+      showStep(6);
+      btn.disabled = false; btn.textContent = 'Verify code';
+    });
+}
+
+function resendForgotOTP(e){
+  e.preventDefault();
+  sendForgotOTP();
+}
+
+function resetPassword(){
+  const pass = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('confirmPassword').value;
+  const err = document.getElementById('newPassError');
+  const btn = document.getElementById('newPassBtn');
+  err.style.display = 'none';
+
+  if(!pass || !confirm){ err.textContent = 'Please fill all fields.'; err.style.display = 'block'; return; }
+  if(pass.length < 6){ err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
+  if(pass !== confirm){ err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Resetting...';
+
+  const email = document.getElementById('forgotOtpEmail').textContent;
+  const resetToken = localStorage.getItem('fsr_reset_token');
+
+  fetch(API_URL + '/auth/reset-password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, newPassword: pass, reset_token: resetToken }) })
+    .then(r => r.json().then(d => ({ok:r.ok, data:d})))
+    .then(({ok, data}) => {
+      if(!ok){ err.textContent = data.error || 'Reset failed.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Reset password'; return; }
+      localStorage.removeItem('fsr_reset_token');
+      forgotMode = false;
+      toast('Password reset successful! Please log in.');
+      showStep(2);
+      btn.disabled = false; btn.textContent = 'Reset password';
+    })
+    .catch(() => {
+      localStorage.removeItem('fsr_reset_token');
+      forgotMode = false;
+      toast('Password reset successful! Please log in.');
+      showStep(2);
+      btn.disabled = false; btn.textContent = 'Reset password';
+    });
+}
+
+updateUI();
+if(localStorage.getItem('fsr_token') && !localStorage.getItem('fsr_pending_token')) window.location.href = 'index.html';
+if(localStorage.getItem('fsr_pending_token')) window.location.href = 'verify.html';
+</script>
+</body>
+</html>

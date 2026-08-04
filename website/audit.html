@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Management - AI-FSR</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="row"><div></div><div class="btn-group">
+      <button class="btn btn-outline" onclick="toast('All Audits view')">All Audits</button>
+      <button class="btn btn-primary" onclick="toast('Schedule form opened')">+ Schedule Audit</button>
+      <button class="btn btn-outline" onclick="toast('Workflow view')">Workflow</button>
+    </div></div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Audit Schedule &amp; History</h3>
+      <table>
+        <tr><th>Audit ID</th><th>Type</th><th>Plant / Unit</th><th>Lead Auditor</th><th>Date</th><th>Score</th><th>Findings</th><th>Status</th></tr>
+        <tr><td style="color:var(--primary);font-weight:500">AUD-2026-041</td><td>Internal</td><td>Main Factory</td><td>Sunita Rao</td><td>2026-08-10</td><td>—</td><td>—</td><td><span class="pill blue">Scheduled</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">AUD-2026-040</td><td>External</td><td>Processing Unit B</td><td>FSSAI Inspector</td><td>2026-07-21</td><td style="font-weight:600">81</td><td>4</td><td><span class="pill green">Completed</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">AUD-2026-039</td><td>Surprise</td><td>Cold Storage</td><td>Ravi Kumar</td><td>2026-07-14</td><td style="font-weight:600;color:var(--danger)">68</td><td>9</td><td><span class="pill green">Completed</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">AUD-2026-038</td><td>Internal</td><td>Main Factory</td><td>Sunita Rao</td><td>2026-07-07</td><td style="font-weight:600">89</td><td>2</td><td><span class="pill green">Completed</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">AUD-2026-037</td><td>Scheduled</td><td>Processing Unit A</td><td>Amit Patel</td><td>2026-07-01</td><td style="font-weight:600">93</td><td>1</td><td><span class="pill green">Completed</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">AUD-2026-036</td><td>Internal</td><td>Main Factory</td><td>Sunita Rao</td><td>2026-08-25</td><td>—</td><td>—</td><td><span class="pill blue">Scheduled</span></td></tr>
+      </table>
+    </div>
+    <div class="card mt-3">
+      <h3 style="margin-bottom:12px">Non-Conformance Findings</h3>
+      <table>
+        <tr><th>Finding ID</th><th>Audit</th><th>Severity</th><th>Area</th><th>Description</th><th>CAPA</th><th>Status</th></tr>
+        <tr><td style="color:var(--primary);font-weight:500">NC-001</td><td>AUD-2026-040</td><td><span class="pill red">Major</span></td><td>Cold Chain</td><td>Temperature exceeded safe limit for &gt;2 hours in Cold Storage Unit 3</td><td style="color:var(--primary)">CAPA-024</td><td><span class="pill red">Open</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">NC-002</td><td>AUD-2026-040</td><td><span class="pill yellow">Minor</span></td><td>Documentation</td><td>Batch records for July 18 production not signed by QA supervisor</td><td style="color:var(--primary)">CAPA-025</td><td><span class="pill yellow">In Progress</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">NC-003</td><td>AUD-2026-039</td><td><span class="pill red">Critical</span></td><td>Pest Control</td><td>Evidence of rodent activity near raw material storage bay 4</td><td style="color:var(--primary)">CAPA-021</td><td><span class="pill green">Closed</span></td></tr>
+        <tr><td style="color:var(--primary);font-weight:500">NC-004</td><td>AUD-2026-039</td><td><span class="pill red">Major</span></td><td>Personal Hygiene</td><td>3 workers observed without hairnets in production zone</td><td style="color:var(--primary)">CAPA-022</td><td><span class="pill green">Closed</span></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>`n<script src="app.js"></script>
+<script>renderShell(4,'Audit Management','Manage internal, external, and surprise audits with AI-assisted reviews','Audit');</script>
+</body>
+</html>

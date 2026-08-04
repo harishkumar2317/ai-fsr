@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Compliance Assistant - AI-FSR</title><link rel="stylesheet" href="styles.css">
+<style>
+.chat-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 170px);border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow)}
+
+/* ── Sidebar ── */
+.chat-sidebar{background:var(--muted);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.chat-sidebar-head{padding:20px;border-bottom:1px solid var(--border)}
+.chat-sidebar-body{flex:1;overflow-y:auto;padding:14px}
+.chat-sidebar-foot{padding:14px;border-top:1px solid var(--border);text-align:center}
+.chat-sidebar-foot small{display:block;font-size:10px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.chat-sidebar-foot b{color:var(--primary);font-size:12px}
+
+/* ── Main ── */
+.chat-main{display:flex;flex-direction:column;background:var(--background);position:relative;overflow:hidden}
+
+/* ── Header ── */
+.chat-header{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--card);position:relative;z-index:2;flex-shrink:0}
+.chat-header-avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;box-shadow:0 2px 8px rgba(2,132,199,.25)}
+.chat-header-info h3{font-size:15px;font-weight:700;margin:0}
+.chat-header-info span{font-size:11px;color:var(--muted-foreground)}
+.chat-header-dot{width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;margin-right:4px;animation:dotPulse 2s infinite}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Messages ── */
+.chat-messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth;min-height:0}
+.msg-group{display:flex;gap:12px;margin-bottom:20px;max-width:72%;animation:msgIn .25s ease}
+.msg-group.user{align-self:flex-end;flex-direction:row-reverse}
+.msg-group.bot{align-self:flex-start}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px}
+.msg-avatar.bot-av{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+.msg-avatar.user-av{background:var(--secondary);color:var(--primary);font-weight:700}
+.msg-content{display:flex;flex-direction:column;gap:6px}
+.msg-bubble{padding:12px 16px;border-radius:14px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;position:relative}
+.msg-group.bot .msg-bubble{background:var(--card);border:1px solid var(--border);border-top-left-radius:4px;box-shadow:var(--shadow-sm)}
+.msg-group.user .msg-bubble{background:var(--primary);color:#fff;border-top-right-radius:4px;box-shadow:0 2px 8px rgba(2,132,199,.2)}
+.msg-time{font-size:10px;color:var(--muted-foreground);padding:0 4px}
+.msg-group.user .msg-time{text-align:right}
+.msg-source{font-size:11px;color:var(--primary);background:rgba(2,132,199,.06);border:1px solid rgba(2,132,199,.15);padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:.15s;font-weight:500}
+.msg-source:hover{background:rgba(2,132,199,.12);border-color:rgba(2,132,199,.3)}
+
+/* ── Typing ── */
+.typing-indicator{display:flex;gap:12px;margin-bottom:20px;align-self:flex-start;max-width:72%;animation:msgIn .25s ease}
+.typing-dots{display:flex;gap:5px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:14px;border-top-left-radius:4px;box-shadow:var(--shadow-sm)}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:typePulse 1.4s infinite ease-in-out}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typePulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1.1)}}
+
+/* ── Suggestion Chips ── */
+.suggest-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:620px;flex-shrink:0}
+.suggest-card{padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:.2s;background:var(--card);position:relative;overflow:hidden}
+.suggest-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:.2s}
+.suggest-card:hover{border-color:var(--primary);box-shadow:0 4px 12px rgba(2,132,199,.1);transform:translateY(-1px)}
+.suggest-card:hover::before{opacity:1}
+.suggest-card-icon{font-size:18px;margin-bottom:8px;display:block}
+.suggest-card-text{font-size:12.5px;color:var(--foreground);font-weight:500;line-height:1.4}
+.suggest-card-tag{display:inline-block;font-size:10px;color:var(--primary);background:rgba(2,132,199,.08);padding:2px 8px;border-radius:999px;margin-top:8px;font-weight:500}
+.disclaimer{font-size:11px;color:var(--muted-foreground);text-align:center;padding:4px 0 0;flex-shrink:0}
+
+/* ── Input Area ── */
+.chat-bottom{padding:12px 24px 16px;background:var(--card);border-top:1px solid var(--border);flex-shrink:0}
+.chat-input-wrap{display:flex;align-items:center;gap:6px;background:var(--background);border:2px solid var(--border);border-radius:14px;padding:5px 8px 5px 16px;transition:.25s}
+.chat-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 4px rgba(2,132,199,.08);background:var(--card)}
+.chat-input{flex:1;border:none;background:none;padding:10px 0;font-size:14px;font-family:'Inter',sans-serif;color:var(--foreground);outline:none}
+.chat-input::placeholder{color:var(--muted-foreground)}
+.chat-icon-btn{width:38px;height:38px;border:none;background:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);transition:.15s;font-size:17px}
+.chat-icon-btn:hover{background:var(--secondary);color:var(--foreground)}
+.chat-send{width:40px;height:40px;border:none;background:var(--primary);color:#fff;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:.2s;flex-shrink:0;box-shadow:0 2px 8px rgba(2,132,199,.3)}
+.chat-send:hover{background:var(--primary-hover);transform:scale(1.05)}
+.chat-send:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
+
+/* ── Empty State ── */
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;width:100%}
+.chat-empty-icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;box-shadow:0 8px 24px rgba(2,132,199,.25);animation:emptyFloat 3s ease-in-out infinite;flex-shrink:0}
+@keyframes emptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.chat-empty h3{font-size:18px;font-weight:700}
+.chat-empty p{font-size:13px;color:var(--muted-foreground);text-align:center;max-width:380px;line-height:1.6}
+
+/* ── Recent Items ── */
+.recent-item{padding:11px 14px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:.15s;border:1px solid transparent}
+.recent-item:hover{background:var(--card);border-color:var(--border)}
+.recent-item.active{background:var(--card);border-color:var(--primary);box-shadow:var(--shadow-sm)}
+.recent-title{font-size:13px;font-weight:500;color:var(--foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-time{font-size:10px;color:var(--muted-foreground);margin-top:3px}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted-foreground);font-weight:700;margin-bottom:10px}
+
+/* ── Context Dropdown ── */
+.ctx-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Inter',sans-serif;background:var(--card);color:var(--foreground);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b8aaa' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.ctx-select:focus{outline:none;border-color:var(--primary)}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .chat-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .chat-sidebar{display:none;position:fixed;top:0;left:0;bottom:0;width:300px;z-index:200;box-shadow:var(--shadow-md)}
+  .chat-sidebar.open{display:flex}
+  .suggest-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+
+    <div class="chat-layout">
+      <div class="chat-sidebar" id="chatSidebar">
+        <div class="chat-sidebar-head">
+          <button class="btn btn-primary" style="width:100%;border-radius:10px;padding:10px" onclick="newChat()">+ New Chat</button>
+          <div style="margin-top:16px">
+            <div class="section-label">Regulation Context</div>
+            <select class="ctx-select" id="contextSelect">
+              <option>All Regulations</option><option>FSSAI Only</option><option>HACCP</option><option>GMP/GHP</option><option>ISO 22000</option>
+            </select>
+          </div>
+        </div>
+        <div class="chat-sidebar-body" id="chatHistory"></div>
+        <div class="chat-sidebar-foot">
+          <small>Powered by</small>
+          <b>LLM + RAG + NLP</b>
+          <small style="margin-top:2px">FSSAI Knowledge Base v2.1</small>
+        </div>
+      </div>
+
+      <div class="chat-main">
+        <div class="chat-header">
+          <div class="chat-header-avatar">&#129302;</div>
+          <div class="chat-header-info">
+            <h3>AI Compliance Assistant</h3>
+            <span><span class="chat-header-dot"></span>Online &middot; FSSAI, HACCP, GMP, ISO 22000</span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty" id="chatEmpty">
+            <div class="chat-empty-icon">&#129302;</div>
+            <h3>How can I help you today?</h3>
+            <p>Ask me anything about FSSAI regulations, HACCP principles, GMP standards, ISO 22000, allergen labeling, audit preparation, or your compliance status.</p>
+            <div class="suggest-grid">
+              <div class="suggest-card" onclick="askQ('What are FSSAI license renewal requirements?')">
+                <span class="suggest-card-icon">&#128196;</span>
+                <div class="suggest-card-text">What are FSSAI license renewal requirements?</div>
+                <span class="suggest-card-tag">FSSAI</span>
+              </div>
+              <div class="suggest-card" onclick="askQ('Explain HACCP principles for dairy processing')">
+                <span class="suggest-card-icon">&#127856;</span>
+                <div class="suggest-card-text">Explain HACCP principles for dairy processing</div>
+                <span class="suggest-card-tag">HACCP</span>
+              </div>
+              <div class="suggest-card" onclick="askQ('What are GMP requirements for food packaging?')">
+                <span class="suggest-card-icon">&#128230;</span>
+                <div class="suggest-card-text">What are GMP requirements for food packaging?</div>
+                <span class="suggest-card-tag">GMP</span>
+              </div>
+              <div class="suggest-card" onclick="askQ('Show compliance gaps for ISO 22000')">
+                <span class="suggest-card-icon">&#127919;</span>
+                <div class="suggest-card-text">Show compliance gaps for ISO 22000</div>
+                <span class="suggest-card-tag">ISO 22000</span>
+              </div>
+              <div class="suggest-card" onclick="askQ('What allergens need mandatory labeling?')">
+                <span class="suggest-card-icon">&#9888;&#65039;</span>
+                <div class="suggest-card-text">What allergens need mandatory labeling?</div>
+                <span class="suggest-card-tag">Labeling</span>
+              </div>
+              <div class="suggest-card" onclick="askQ('What is the incident management process?')">
+                <span class="suggest-card-icon">&#128680;</span>
+                <div class="suggest-card-text">What is the incident management process?</div>
+                <span class="suggest-card-tag">Incidents</span>
+              </div>
+            </div>
+            <div class="disclaimer">Responses are AI-generated guidance &middot; Not legal advice &middot; Confirm on official FSSAI/FoSCoS portal</div>
+          </div>
+        </div>
+
+        <div class="chat-bottom">
+          <div class="chat-input-wrap">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your question..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}" oninput="toggleSend()">
+            <button class="chat-icon-btn" title="Attach file" onclick="toast('File attachment coming soon')">&#128206;</button>
+            <button class="chat-icon-btn" title="Voice input" onclick="toast('Voice input coming soon')">&#127908;</button>
+            <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled>&#8593;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+renderShell(2,'AI Compliance Assistant','','AI Compliance Assistant');
+
+const ANSWERS={
+  'fssai license':{text:'FSSAI License Renewal Requirements:\n\n1. Submit renewal application at least 30 days before expiry via FoSCoS portal\n2. Updated Form B with current details\n3. Valid Food Safety Management Plan (FSMS)\n4. Updated list of food categories\n5. Fee payment: \u20b92000\u2013\u20b97500 depending on category\n6. Valid water test report from NABL-accredited lab\n7. NOC from local municipal authority',source:'FSS (Licensing & Registration) Regulation 2011, Rule 5'},
+  'haccp':{text:'HACCP Principles for Dairy Processing:\n\n1. Conduct Hazard Analysis \u2014 identify biological (Listeria, Salmonella), chemical, physical hazards\n2. Determine Critical Control Points (CCP) \u2014 pasteurization, cold storage\n3. Set Critical Limits \u2014 e.g., pasteurization at 72\u00b0C for 15 seconds\n4. Establish Monitoring \u2014 temperature logs every 2 hours\n5. Corrective Actions \u2014 reprocess or discard if CCP exceeded\n6. Verification \u2014 calibrate thermometers weekly, audit records monthly\n7. Record Keeping \u2014 maintain HACCP plan, monitoring records, corrective action logs',source:'Codex Alimentarius / FSSAI HACCP Guidelines'},
+  'gmp':{text:'GMP Requirements for Food Packaging:\n\n\u2022 Cleanroom standards for direct-contact packaging\n\u2022 Material safety \u2014 food-grade certifications required\n\u2022 Printing inks must be food-safe compliant\n\u2022 Storage: separate from raw materials, FIFO rotation\n\u2022 Line clearance procedures between product changeovers\n\u2022 Worker hygiene: hairnets, gloves, no jewelry\n\u2022 Pest control measures in packaging areas\n\u2022 Regular equipment calibration and maintenance',source:'Schedule 4, FSS (Licensing & Registration) Regulation 2011'},
+  'iso 22000':{text:'ISO 22000 Compliance Gaps (typical):\n\n1. Food Safety Policy not communicated to all staff\n2. HACCP team lacks cross-functional representation\n3. Prerequisite programs (PRPs) incomplete\n4. Traceability system not fully automated\n5. Emergency preparedness plan outdated\n6. Internal audit program not annual\n7. Management review minutes missing\n8. Corrective action effectiveness not verified\n9. Customer complaint trend analysis absent\n10. Continual improvement targets not set',source:'ISO 22000:2018 Standard Requirements'},
+  'allergen':{text:'Mandatory Allergen Labeling (FSSAI):\n\nThe following must be declared on labels:\n1. Gluten-containing cereals (wheat, barley, rye)\n2. Crustaceans (shrimp, crab)\n3. Eggs\n4. Fish\n5. Peanuts\n6. Soybeans\n7. Milk (lactose)\n8. Tree nuts (almonds, cashews, walnuts)\n9. Celery\n10. Mustard\n11. Sesame\n12. Sulphur dioxide/sulphites (>10mg/kg)\n13. Lupin\n14. Molluscs\n\nMust appear in INGREDIENTS list in BOLD.',source:'FSS (Packaging & Labeling) Regulation 2011, Annexure'},
+  'cold chain':{text:'Cold Chain Management Requirements:\n\n\u2022 Maintain temperature logs \u2014 refrigerated 0\u20134\u00b0C, frozen \u2264 \u221218\u00b0C\n\u2022 Temperature monitoring devices calibrated quarterly\n\u2022 Vehicle refrigeration units checked before each trip\n\u2022 Loading/unloading time \u2264 30 minutes for perishables\n\u2022 Backup power for cold storage mandatory\n\u2022 HACCP-based cold chain plan required\n\u2022 Deviation records with corrective actions\n\u2022 Staff training on cold chain handling',source:'FSSAI Cold Chain Guidelines 2020'},
+  'audit':{text:'FSSAI Audit Preparation Checklist:\n\n1. Valid FSSAI license displayed prominently\n2. FSMS documentation complete and up-to-date\n3. HACCP plan with all 7 principles documented\n4. Internal audit records (last 12 months)\n5. Corrective action logs for all NCs\n6. Supplier approval records\n7. Training records for all food handlers\n8. Pest control contracts and reports\n9. Calibration certificates for instruments\n10. Product recall plan tested annually',source:'FSSAI Audit Protocol v3.0'},
+  'incident':{text:'Incident Management Process:\n\n1. IMMEDIATE: Contain the incident, isolate affected products\n2. ASSESS: Evaluate severity and scope (minor/major/critical)\n3. NOTIFY: Inform FSSAI within 24 hours for serious incidents\n4. INVESTIGATE: Root cause analysis using 5-Why or Fishbone\n5. CORRECT: Implement CAPA with defined timeline\n6. VERIFY: Confirm effectiveness of corrective actions\n7. DOCUMENT: Complete incident report with evidence\n8. REVIEW: Management review and lessons learned',source:'FSSAI Food Safety Management Regulation'},
+  'label':{text:'Food Label Requirements (FSSAI):\n\n\u2022 Product name / trade name\n\u2022 List of ingredients in descending order\n\u2022 Allergen declaration (bold)\n\u2022 Net quantity\n\u2022 Manufacturing date + expiry / best before\n\u2022 Batch number / lot number\n\u2022 Nutrition information per 100g\n\u2022 FSSAI license number (with logo)\n\u2022 MRP (inclusive of all taxes)\n\u2022 Manufacturer name and address\n\u2022 Country of origin (for imports)\n\u2022 Storage instructions',source:'FSS (Packaging & Labeling) Regulation 2011'},
+  'water':{text:'Water Quality Testing Requirements:\n\n\u2022 Test frequency: Monthly for microbial, Quarterly for chemical\n\u2022 Parameters: pH, TDS, hardness, chloride, fluoride, iron, manganese\n\u2022 Microbial: TC, FC, E.coli, Salmonella, Vibrio\n\u2022 Heavy metals: Lead, arsenic, mercury, cadmium\n\u2022 Testing must be done at NABL-accredited lab\n\u2022 Records maintained for 2 years\n\u2022 Non-compliance triggers immediate corrective action\n\u2022 Water treatment system validation required',source:'FSSAI Water Quality Standards'}
+};
+
+const HISTORY_KEY='fsr_chat_history';
+let chatHistory=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+
+function init(){
+  renderHistory();
+  document.getElementById('contextSelect').addEventListener('change',function(){
+    document.getElementById('contextLabel').textContent=this.value;
+  });
+}
+
+function renderHistory(){
+  const el=document.getElementById('chatHistory');
+  el.innerHTML='<div class="section-label">Recent</div>';
+  if(!chatHistory.length){
+    el.innerHTML+='<div style="font-size:12px;color:var(--muted-foreground);padding:20px;text-align:center">No conversations yet</div>';
+    return;
+  }
+  chatHistory.slice(-10).reverse().forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='recent-item'+(i===0?' active':'');
+    d.innerHTML=`<div class="recent-title">${esc(c.title)}</div><div class="recent-time">${c.time}</div>`;
+    d.onclick=()=>loadChat(c.id);
+    el.appendChild(d);
+  });
+}
+
+function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getTime(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+
+function toggleSend(){
+  document.getElementById('sendBtn').disabled=!document.getElementById('chatInput').value.trim();
+}
+
+function sendMsg(){
+  const inp=document.getElementById('chatInput');
+  const q=inp.value.trim();
+  if(!q)return;
+  document.getElementById('chatEmpty').style.display='none';
+  document.getElementById('chatEmpty').style.display='none';
+  addMsg('user',q);
+  inp.value='';
+  toggleSend();
+  showTyping();
+  const delay=800+Math.random()*1200;
+  setTimeout(()=>{
+    hideTyping();
+    const key=Object.keys(ANSWERS).find(k=>q.toLowerCase().includes(k));
+    const ans=key?ANSWERS[key]:{text:'Based on FSSAI Act 2006 and related regulations, I can guide you on licensing, labeling, HACCP, GMP, ISO 22000, and compliance. Please ask a specific question about any food safety regulation and I will provide detailed guidance with relevant sources.\n\nThis is advisory guidance \u2014 always confirm on the official FSSAI/FoSCoS portal.',source:null};
+    addMsg('bot',ans.text,ans.source);
+    saveToHistory(q,ans.text);
+  },delay);
+}
+
+function addMsg(role,text,source,scroll){
+  if(scroll===undefined)scroll=true;
+  const box=document.getElementById('chatMessages');
+  const g=document.createElement('div');
+  g.className='msg-group '+role;
+  const time=getTime();
+  if(role==='bot'){
+    g.innerHTML=`<div class="msg-avatar bot-av">&#129302;</div><div class="msg-content"><div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div>${source?'<div class="msg-source" onclick="toast(\'Source: '+esc(source)+'\')">&#128196; '+esc(source)+'</div>':''}<div class="msg-time">${time}</div></div>`;
+  } else {
+    g.innerHTML=`<div class="msg-avatar user-av">Y</div><div class="msg-content"><div class="msg-bubble">${esc(text)}</div><div class="msg-time">${time}</div></div>`;
+  }
+  box.appendChild(g);
+  if(scroll)box.scrollTop=box.scrollHeight;
+}
+
+function showTyping(){
+  const box=document.getElementById('chatMessages');
+  const t=document.createElement('div');
+  t.className='typing-indicator';
+  t.id='typingIndicator';
+  t.innerHTML=`<div class="msg-avatar bot-av">&#129302;</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  box.appendChild(t);
+  box.scrollTop=box.scrollHeight;
+}
+
+function hideTyping(){
+  const t=document.getElementById('typingIndicator');
+  if(t)t.remove();
+}
+
+function saveToHistory(q,a){
+  const title=q.length>35?q.substring(0,35)+'...':q;
+  const now=new Date();
+  const timeStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+getTime();
+  let last=chatHistory[chatHistory.length-1];
+  if(!last||last.messages.length>20){
+    last={id:Date.now(),title:title,time:timeStr,messages:[]};
+    chatHistory.push(last);
+  }
+  last.messages.push({role:'user',text:q});
+  last.messages.push({role:'bot',text:a});
+  last.title=title;
+  last.time=timeStr;
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(chatHistory));
+  renderHistory();
+}
+
+function loadChat(id){
+  const chat=chatHistory.find(c=>c.id===id);
+  if(!chat)return;
+  document.getElementById('chatEmpty').style.display='none';
+  document.getElementById('chatEmpty').style.display='none';
+  document.getElementById('chatMessages').innerHTML='';
+  chat.messages.forEach(m=>addMsg(m.role,m.text,null,false));
+  renderHistory();
+}
+
+function askQ(q){
+  document.getElementById('chatInput').value=q;
+  toggleSend();
+  sendMsg();
+}
+
+function newChat(){
+  document.getElementById('chatMessages').innerHTML=`
+    <div class="chat-empty" id="chatEmpty">
+      <div class="chat-empty-icon">&#129302;</div>
+      <h3>How can I help you today?</h3>
+      <p>Ask me anything about FSSAI regulations, HACCP principles, GMP standards, ISO 22000, allergen labeling, audit preparation, or your compliance status.</p>
+      <div class="suggest-grid">
+        <div class="suggest-card" onclick="askQ('What are FSSAI license renewal requirements?')"><span class="suggest-card-icon">&#128196;</span><div class="suggest-card-text">What are FSSAI license renewal requirements?</div><span class="suggest-card-tag">FSSAI</span></div>
+        <div class="suggest-card" onclick="askQ('Explain HACCP principles for dairy processing')"><span class="suggest-card-icon">&#127856;</span><div class="suggest-card-text">Explain HACCP principles for dairy processing</div><span class="suggest-card-tag">HACCP</span></div>
+        <div class="suggest-card" onclick="askQ('What are GMP requirements for food packaging?')"><span class="suggest-card-icon">&#128230;</span><div class="suggest-card-text">What are GMP requirements for food packaging?</div><span class="suggest-card-tag">GMP</span></div>
+        <div class="suggest-card" onclick="askQ('Show compliance gaps for ISO 22000')"><span class="suggest-card-icon">&#127919;</span><div class="suggest-card-text">Show compliance gaps for ISO 22000</div><span class="suggest-card-tag">ISO 22000</span></div>
+        <div class="suggest-card" onclick="askQ('What allergens need mandatory labeling?')"><span class="suggest-card-icon">&#9888;&#65039;</span><div class="suggest-card-text">What allergens need mandatory labeling?</div><span class="suggest-card-tag">Labeling</span></div>
+        <div class="suggest-card" onclick="askQ('What is the incident management process?')"><span class="suggest-card-icon">&#128680;</span><div class="suggest-card-text">What is the incident management process?</div><span class="suggest-card-tag">Incidents</span></div>
+      </div>
+      <div class="disclaimer">Responses are AI-generated guidance &middot; Not legal advice &middot; Confirm on official FSSAI/FoSCoS portal</div>
+    </div>`;
+  renderHistory();
+}
+
+init();
+</script>
+</body>
+</html>
