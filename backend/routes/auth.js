@@ -5,7 +5,7 @@ const { getDB, runSQL } = require('../db/database');
 const { authenticate, logActivity } = require('../middleware/auth');
 
 const router = express.Router();
-const JWT_SECRET = JWT_SECRET || 'ai-fsr-fallback-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'ai-fsr-fallback-secret-2026';
 
 function queryAll(sql, params = []) {
   const db = getDB();
