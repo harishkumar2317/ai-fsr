@@ -15,7 +15,6 @@ async function initDB() {
     db = new SQL.Database();
   }
 
-  db.run(`PRAGMA journal_mode = WAL`);
   db.run(`PRAGMA foreign_keys = ON`);
 
   createTables();
