@@ -5,6 +5,7 @@ const { getDB, runSQL } = require('../db/database');
 const { authenticate, logActivity } = require('../middleware/auth');
 
 const router = express.Router();
+const JWT_SECRET = JWT_SECRET || 'ai-fsr-fallback-secret-2026';
 
 function queryAll(sql, params = []) {
   const db = getDB();
@@ -68,7 +69,7 @@ router.post('/signup', (req, res) => {
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
@@ -112,7 +113,7 @@ router.post('/login', (req, res) => {
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
@@ -213,7 +214,7 @@ router.post('/reset-password', (req, res) => {
     }
 
     try {
-      const decoded = jwt.verify(reset_token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(reset_token, JWT_SECRET);
       if (decoded.email !== email || decoded.purpose !== 'password_reset') {
         return res.status(400).json({ error: 'Invalid reset token.' });
       }
@@ -268,7 +269,7 @@ router.post('/verify-reset-otp', (req, res) => {
     if (Date.now() > record.expires) { delete forgotOtpStore[email]; return res.status(400).json({ error: 'OTP expired. Please request a new one.' }); }
     if (record.otp !== otp) return res.status(400).json({ error: 'Invalid OTP.' });
 
-    const resetToken = jwt.sign({ email, purpose: 'password_reset' }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const resetToken = jwt.sign({ email, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
     delete forgotOtpStore[email];
 
     res.json({ message: 'OTP verified.', reset_token: resetToken });

@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { getDB } = require('../db/database');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'ai-fsr-fallback-secret-2026';
+
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -9,7 +11,7 @@ function authenticate(req, res, next) {
 
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     const db = getDB();
     const result = db.exec("SELECT id, name, email, role, organization_id, status FROM users WHERE id = " + decoded.userId);
     if (!result.length || !result[0].values.length) {
