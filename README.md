@@ -2,6 +2,8 @@
 
 AI-powered compliance platform for the food industry. Automate audits, track incidents, manage CAPA, and stay compliant with FSSAI, HACCP, and ISO 22000 regulations.
 
+**Live:** [https://ai-fsr-production.up.railway.app](https://ai-fsr-production.up.railway.app/login.html)
+
 ## Features
 
 - **Dashboard** — Real-time compliance scores, alerts, and analytics
