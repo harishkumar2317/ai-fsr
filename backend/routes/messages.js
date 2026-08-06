@@ -20,6 +20,8 @@ function queryOne(sql) {
   return rows.length ? rows[0] : null;
 }
 
+function esc(s) { return (s || '').replace(/'/g, "''"); }
+
 // Get conversations list (MUST be before /:userId to avoid route conflict)
 router.get('/conversations', authenticate, (req, res) => {
   try {
@@ -29,9 +31,12 @@ router.get('/conversations', authenticate, (req, res) => {
     let conversations = [];
 
     if (isAdmin) {
-      const members = queryAll(
-        `SELECT id, name, email, role FROM users WHERE organization_id = ${orgId} AND id != ${userId} AND status = 'active'`
-      );
+      const orgName = queryOne(`SELECT name FROM organizations WHERE id = ${orgId}`);
+      const members = orgName ? queryAll(
+        `SELECT u.id, u.name, u.email, u.role FROM users u
+         LEFT JOIN organizations o ON u.organization_id = o.id
+         WHERE o.name = '${esc(orgName.name)}' AND u.id != ${userId} AND u.status = 'active'`
+      ) : [];
       conversations = members.map(m => {
         const last = queryOne(
           `SELECT message, created_at FROM messages WHERE (sender_id = ${m.id} AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = ${m.id}) ORDER BY created_at DESC LIMIT 1`
@@ -43,9 +48,12 @@ router.get('/conversations', authenticate, (req, res) => {
       });
       conversations.sort((a, b) => (b.last_time || '').localeCompare(a.last_time || ''));
     } else {
-      const admin = queryOne(
-        `SELECT id, name, email, role FROM users WHERE organization_id = ${orgId} AND role IN ('admin','super_admin') AND id != ${userId} AND status = 'active' LIMIT 1`
-      );
+      const orgName = queryOne(`SELECT name FROM organizations WHERE id = ${orgId}`);
+      const admin = orgName ? queryOne(
+        `SELECT u.id, u.name, u.email, u.role FROM users u
+         LEFT JOIN organizations o ON u.organization_id = o.id
+         WHERE o.name = '${esc(orgName.name)}' AND u.role IN ('admin','super_admin') AND u.id != ${userId} AND u.status = 'active' LIMIT 1`
+      ) : null;
       if (admin) {
         const last = queryOne(
           `SELECT message, created_at FROM messages WHERE (sender_id = ${admin.id} AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = ${admin.id}) ORDER BY created_at DESC LIMIT 1`
