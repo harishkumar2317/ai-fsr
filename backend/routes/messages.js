@@ -32,32 +32,37 @@ function queryOne(sql, params = []) {
 router.get('/conversations', authenticate, (req, res) => {
   try {
     const userId = req.user.id;
+    const orgId = req.user.organization_id;
     const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
-    let conversations;
+    let conversations = [];
 
     if (isAdmin) {
-      conversations = queryAll(`
-        SELECT u.id, u.name, u.email, u.role,
-          (SELECT message FROM messages WHERE (sender_id = u.id AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = u.id) ORDER BY created_at DESC LIMIT 1) as last_message,
-          (SELECT created_at FROM messages WHERE (sender_id = u.id AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = u.id) ORDER BY created_at DESC LIMIT 1) as last_time,
-          (SELECT COUNT(*) FROM messages WHERE sender_id = u.id AND receiver_id = ${userId} AND read = 0) as unread
-        FROM users u
-        WHERE u.organization_id = ? AND u.id != ? AND u.status = 'active'
-        ORDER BY last_time DESC
-      `, [req.user.organization_id, userId]);
+      const members = queryAll(
+        `SELECT id, name, email, role FROM users WHERE organization_id = ${orgId} AND id != ${userId} AND status = 'active'`
+      );
+      conversations = members.map(m => {
+        const last = queryOne(
+          `SELECT message, created_at FROM messages WHERE (sender_id = ${m.id} AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = ${m.id}) ORDER BY created_at DESC LIMIT 1`
+        );
+        const unread = queryOne(
+          `SELECT COUNT(*) as c FROM messages WHERE sender_id = ${m.id} AND receiver_id = ${userId} AND read = 0`
+        );
+        return { ...m, last_message: last?.message || null, last_time: last?.created_at || null, unread: unread?.c || 0 };
+      });
+      conversations.sort((a, b) => (b.last_time || '').localeCompare(a.last_time || ''));
     } else {
       const admin = queryOne(
-        `SELECT id, name, email, role FROM users WHERE organization_id = ? AND role IN ('admin','super_admin') AND id != ? AND status = 'active' LIMIT 1`,
-        [req.user.organization_id, userId]
+        `SELECT id, name, email, role FROM users WHERE organization_id = ${orgId} AND role IN ('admin','super_admin') AND id != ${userId} AND status = 'active' LIMIT 1`
       );
-      if (!admin) return res.json({ conversations: [] });
-      conversations = queryAll(`
-        SELECT u.id, u.name, u.email, u.role,
-          (SELECT message FROM messages WHERE (sender_id = u.id AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = u.id) ORDER BY created_at DESC LIMIT 1) as last_message,
-          (SELECT created_at FROM messages WHERE (sender_id = u.id AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = u.id) ORDER BY created_at DESC LIMIT 1) as last_time,
-          (SELECT COUNT(*) FROM messages WHERE sender_id = u.id AND receiver_id = ${userId} AND read = 0) as unread
-        FROM users u WHERE u.id = ?
-      `, [admin.id]);
+      if (admin) {
+        const last = queryOne(
+          `SELECT message, created_at FROM messages WHERE (sender_id = ${admin.id} AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = ${admin.id}) ORDER BY created_at DESC LIMIT 1`
+        );
+        const unread = queryOne(
+          `SELECT COUNT(*) as c FROM messages WHERE sender_id = ${admin.id} AND receiver_id = ${userId} AND read = 0`
+        );
+        conversations = [{ ...admin, last_message: last?.message || null, last_time: last?.created_at || null, unread: unread?.c || 0 }];
+      }
     }
     res.json({ conversations });
   } catch (err) {
@@ -72,11 +77,9 @@ router.get('/:userId', authenticate, (req, res) => {
     const userId = req.user.id;
     const otherId = parseInt(req.params.userId);
     const messages = queryAll(
-      `SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at ASC`,
-      [userId, otherId, otherId, userId]
+      `SELECT * FROM messages WHERE (sender_id = ${userId} AND receiver_id = ${otherId}) OR (sender_id = ${otherId} AND receiver_id = ${userId}) ORDER BY created_at ASC`
     );
-    // Mark as read
-    runSQL(`UPDATE messages SET read = 1 WHERE sender_id = ? AND receiver_id = ?`, [otherId, userId]);
+    runSQL(`UPDATE messages SET read = 1 WHERE sender_id = ${otherId} AND receiver_id = ${userId}`);
     res.json({ messages });
   } catch (err) {
     console.error('Get messages error:', err);
@@ -92,8 +95,7 @@ router.post('/', authenticate, (req, res) => {
       return res.status(400).json({ error: 'receiver_id and message are required.' });
     }
     runSQL(
-      `INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)`,
-      [req.user.id, receiver_id, message]
+      `INSERT INTO messages (sender_id, receiver_id, message) VALUES (${req.user.id}, ${receiver_id}, '${message.replace(/'/g, "''")}')`
     );
     res.status(201).json({ message: 'Message sent.' });
   } catch (err) {
