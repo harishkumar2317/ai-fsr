@@ -378,6 +378,9 @@ textarea{min-height:70px;resize:vertical}
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:140}
 .sidebar-overlay.show{display:block}
 
+@media(max-width:1024px){
+  .grid-6{grid-template-columns:repeat(3,1fr)}
+}
 @media(max-width:900px){
   .layout{grid-template-columns:1fr}
   .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:150;transform:translateX(-100%);transition:.3s}
@@ -403,10 +406,19 @@ textarea{min-height:70px;resize:vertical}
   th,td{padding:7px 8px;white-space:nowrap}
   .tabs{overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
   .tab{padding:10px 16px;font-size:13px}
+  .card{overflow:hidden}
+  .row{flex-direction:column;align-items:flex-start}
+  .pipeline{flex-wrap:wrap;gap:8px}
+  .pipe-line{display:none}
+  .workflow{flex-wrap:wrap;gap:8px}
+  .wf-line{display:none}
+  .org-card{margin:0 8px 12px;padding:10px 12px}
+  .nav{padding:0 6px}
+  .nav a{padding:9px 12px;font-size:13px}
 }
 @media(max-width:480px){
   .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
-  .grid-6{grid-template-columns:1fr}
+  .grid-6{grid-template-columns:1fr 1fr}
   .main{padding:12px}
   .search-wrap{display:none}
   .system-badge{display:none}
@@ -416,11 +428,14 @@ textarea{min-height:70px;resize:vertical}
   .stat-card{padding:12px}
   .stat-num{font-size:22px}
   .btn{padding:7px 12px;font-size:12px}
-  .pipeline{flex-wrap:wrap;gap:8px}
-  .pipe-line{display:none}
-  .workflow{flex-wrap:wrap;gap:8px}
-  .wf-line{display:none}
   .risk-name{width:100%;font-size:11px}
   .risk-row{flex-wrap:wrap}
+  .sidebar{width:240px}
+  .profile-dropdown{left:-20px;right:-20px;width:auto}
+  .breadcrumb{font-size:11px}
+  .topbar h1{font-size:16px}
+}
+@media(max-width:360px){
+  .grid-6{grid-template-columns:1fr}
 }
 @media(min-width:901px){.sidebar{transform:none !important}.hamburger{display:none !important}.sidebar-overlay{display:none !important}}
