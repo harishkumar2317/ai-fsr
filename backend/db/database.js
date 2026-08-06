@@ -191,65 +191,14 @@ function createTables() {
 }
 
 function seedDemoData() {
-  const userCount = db.exec("SELECT COUNT(*) as c FROM users")[0]?.values[0][0];
-  if (userCount > 0) return;
-
-  const bcrypt = require('bcryptjs');
-  const hash = bcrypt.hashSync('Demo@123', 10);
-
-  db.run(`INSERT INTO organizations (name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score)
-    VALUES ('AgroFood Industries Ltd.', 'Main Factory', 'PLT-001', 'Sector 15, Noida, UP', '12345678901234', 'Central', 'Priya Sharma', 'Quality Manager', 'priya.sharma@agrofood.in', '+91 98765 43210', 'Active', 91)`);
-
-  db.run(`INSERT INTO organizations (name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score)
-    VALUES ('AgroFood Industries Ltd.', 'Unit B - Dairy', 'PLT-002', 'Sector 16, Noida, UP', '12345678901235', 'Central', 'Ravi Kumar', 'Food Safety Officer', 'ravi.kumar@agrofood.in', '+91 98765 43211', 'Active', 87)`);
-
-  db.run(`INSERT INTO organizations (name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score)
-    VALUES ('FreshCatch Seafoods', 'Processing Plant', 'PLT-003', 'Mumbai Port, Maharashtra', '23456789012345', 'Central', 'Anita Desai', 'QA Head', 'anita@freshcatch.in', '+91 97654 32109', 'Active', 78)`);
-
-  db.run(`INSERT INTO users (name, email, password, role, organization_id, phone)
-    VALUES ('Priya Sharma', 'priya.sharma@agrofood.in', '${hash}', 'admin', 1, '+91 98765 43210')`);
-
-  db.run(`INSERT INTO users (name, email, password, role, organization_id, phone)
-    VALUES ('Ravi Kumar', 'ravi.kumar@agrofood.in', '${hash}', 'food_safety_officer', 2, '+91 98765 43211')`);
-
-  db.run(`INSERT INTO users (name, email, password, role, organization_id, phone)
-    VALUES ('Sunita Rao', 'sunita.rao@agrofood.in', '${hash}', 'auditor', 1, '+91 98765 43212')`);
-
-  db.run(`INSERT INTO users (name, email, password, role, organization_id, phone)
-    VALUES ('Admin User', 'admin@ai-fsr.com', '${hash}', 'super_admin', NULL, '+91 99999 00000')`);
-
-  db.run(`INSERT INTO audits (audit_id, type, organization_id, plant, auditor, date, score, status)
-    VALUES ('AUD-2026-041', 'Internal', 1, 'Main Factory', 'Sunita Rao', '2026-07-28', 94, 'Completed')`);
-
-  db.run(`INSERT INTO audits (audit_id, type, organization_id, plant, auditor, date, score, status)
-    VALUES ('AUD-2026-040', 'External', 1, 'Main Factory', 'FSSAI Inspector', '2026-07-22', 91, 'Completed')`);
-
-  db.run(`INSERT INTO audits (audit_id, type, organization_id, plant, auditor, date, score, status)
-    VALUES ('AUD-2026-039', 'Internal', 2, 'Unit B - Dairy', 'Ravi Kumar', '2026-07-20', 87, 'Completed')`);
-
-  db.run(`INSERT INTO audits (audit_id, type, organization_id, plant, auditor, date, score, status)
-    VALUES ('AUD-2026-042', 'Internal', 1, 'Main Factory', 'Sunita Rao', '2026-08-15', NULL, 'Scheduled')`);
-
-  db.run(`INSERT INTO incidents (incident_id, title, description, severity, status, organization_id, reported_by, assigned_to, date)
-    VALUES ('INC-2026-018', 'Temperature Violation', 'Cold Storage #3 temperature rose to 8C for 45 minutes', 'High', 'Open', 1, 'Ravi Kumar', 'Priya Sharma', '2026-07-28')`);
-
-  db.run(`INSERT INTO incidents (incident_id, title, description, severity, status, organization_id, reported_by, assigned_to, date)
-    VALUES ('INC-2026-017', 'Foreign Material Found', 'Metal fragment detected in product batch B2026-07', 'Critical', 'In Progress', 1, 'Priya Sharma', 'Ravi Kumar', '2026-07-25')`);
-
-  db.run(`INSERT INTO incidents (incident_id, title, description, severity, status, organization_id, reported_by, assigned_to, date)
-    VALUES ('INC-2026-016', 'Pest Sighting', 'Rodent droppings observed in storage area C', 'Medium', 'Closed', 2, 'Ravi Kumar', 'Anita Desai', '2026-07-20')`);
-
-  db.run(`INSERT INTO capa (capa_id, title, description, type, priority, status, organization_id, assigned_to, due_date, progress)
-    VALUES ('CAPA-026', 'Cold Storage Compressor Repair', 'Replace faulty compressor in Cold Storage #3', 'Corrective', 'High', 'In Progress', 1, 'Ravi Kumar', '2026-08-10', 60)`);
-
-  db.run(`INSERT INTO capa (capa_id, title, description, type, priority, status, organization_id, assigned_to, due_date, progress)
-    VALUES ('CAPA-025', 'Metal Detector Calibration', 'Recalibrate all metal detectors on production line', 'Corrective', 'Critical', 'In Progress', 1, 'Priya Sharma', '2026-08-05', 40)`);
-
-  db.run(`INSERT INTO capa (capa_id, title, description, type, priority, status, organization_id, assigned_to, due_date, progress)
-    VALUES ('CAPA-024', 'Pest Control Enhancement', 'Increase pest control frequency in storage areas', 'Preventive', 'Medium', 'Open', 2, 'Anita Desai', '2026-08-20', 10)`);
-
-  db.run(`INSERT INTO capa (capa_id, title, description, type, priority, status, organization_id, assigned_to, due_date, progress)
-    VALUES ('CAPA-023', 'Staff Hygiene Training', 'Conduct refresher training on personal hygiene', 'Preventive', 'Low', 'Closed', 1, 'Sunita Rao', '2026-07-30', 100)`);
+  // Remove any leftover demo data
+  try {
+    db.run(`DELETE FROM organizations WHERE fssai_license IN ('12345678901234','12345678901235','23456789012345')`);
+    db.run(`DELETE FROM users WHERE email IN ('priya.sharma@agrofood.in','ravi.kumar@agrofood.in','sunita.rao@agrofood.in','admin@ai-fsr.com')`);
+    db.run(`DELETE FROM audits WHERE audit_id LIKE 'AUD-2026-0%'`);
+    db.run(`DELETE FROM incidents WHERE incident_id LIKE 'INC-2026-0%'`);
+    db.run(`DELETE FROM capa WHERE capa_id LIKE 'CAPA-0%'`);
+  } catch(e) {}
 }
 
 function runSQL(sql, params = []) {
