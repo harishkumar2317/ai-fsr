@@ -26,7 +26,7 @@ function esc(s) { return (s || '').replace(/'/g, "''"); }
 router.get('/', authenticate, (req, res) => {
   try {
     let sql = "SELECT * FROM organizations ORDER BY created_at DESC";
-    if (req.user.role !== 'super_admin' && req.user.organization_id) {
+    if (req.user.role !== 'super_admin' && req.user.role !== 'admin' && req.user.organization_id) {
       sql = `SELECT * FROM organizations WHERE id = ${req.user.organization_id}`;
     }
     const orgs = queryAll(sql);
@@ -61,6 +61,9 @@ router.post('/', authenticate, authorize('super_admin', 'admin'), (req, res) => 
     );
 
     const org = queryOne("SELECT * FROM organizations ORDER BY id DESC LIMIT 1");
+    if (org && !req.user.organization_id) {
+      runSQL(`UPDATE users SET organization_id = ${org.id} WHERE id = ${req.user.id}`);
+    }
     res.status(201).json({ organization: org, message: 'Organization created.' });
   } catch (err) {
     console.error('Create organization error:', err);
