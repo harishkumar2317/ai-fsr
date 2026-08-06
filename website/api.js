@@ -95,6 +95,12 @@ const API = {
     remove(id) { return API.del('/invite/' + id); }
   },
 
+  messages: {
+    conversations() { return API.get('/messages/conversations'); },
+    get(userId) { return API.get('/messages/' + userId); },
+    send(receiver_id, message) { return API.post('/messages', { receiver_id, message }); }
+  },
+
   assistant: {
     async chat(messages, onChunk, onDone, onError) {
       try {
