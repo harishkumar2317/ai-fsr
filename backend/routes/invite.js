@@ -62,12 +62,15 @@ router.get('/', authenticate, authorize('super_admin', 'admin'), (req, res) => {
     const orgId = req.user.organization_id;
     if (!orgId) return res.json({ members: [] });
 
+    const orgName = queryOne(`SELECT name FROM organizations WHERE id = ${orgId}`);
+    if (!orgName) return res.json({ members: [] });
+
     const members = queryAll(
       `SELECT u.id, u.name, u.email, u.role, u.status, u.created_at, u.organization_id,
               o.name as org_name, o.plant as org_plant
        FROM users u
        LEFT JOIN organizations o ON u.organization_id = o.id
-       WHERE u.organization_id = ${orgId}
+       WHERE o.name = '${esc(orgName.name)}'
        ORDER BY u.created_at DESC`
     );
     res.json({ members });
