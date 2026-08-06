@@ -48,8 +48,16 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 .confirm-icon{font-size:36px;margin-bottom:10px}
 .confirm-text{font-size:14px;color:var(--foreground);font-weight:500}
 .confirm-sub{font-size:12px;color:var(--muted-foreground);margin-top:4px}
-@media(max-width:900px){.org-stats{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.table-head{flex-direction:column;align-items:stretch}.table-search{width:100%}}
+@media(max-width:900px){.org-stats{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.table-head{flex-direction:column;align-items:stretch}.table-search{width:100%}.chat-grid{grid-template-columns:1fr!important}.conv-list{max-height:200px;border-right:none!important;border-bottom:1px solid var(--border)!important}}
 @media(max-width:480px){.org-stats{grid-template-columns:1fr}.org-stat-val{font-size:20px}}
+.chat-grid{display:grid;grid-template-columns:280px 1fr;min-height:400px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.conv-list{border-right:1px solid var(--border);overflow-y:auto;background:var(--muted)}
+.chat-area{display:flex;flex-direction:column;background:var(--background)}
+.chat-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.chat-input-bar{padding:12px 16px;border-top:1px solid var(--border);background:var(--card)}
+.chat-msg-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:var(--background);color:var(--foreground);outline:none}
+.chat-msg-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(2,132,199,.1)}
 </style>
 </head>
 <body>
@@ -62,68 +70,81 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 
     <div class="org-stats" id="orgStats"></div>
 
-    <div class="card">
-      <div class="table-head">
-        <div style="display:flex;align-items:center;gap:12px">
-          <h3 style="margin:0">All Organizations</h3>
-          <span class="badge badge-blue" id="orgCount">0 total</span>
-        </div>
-        <div style="display:flex;gap:10px">
-          <div class="table-search">
-            <span>&#128269;</span>
-            <input type="text" placeholder="Search organizations..." id="orgSearch" oninput="renderTable()">
+    <!-- All Organizations -->
+    <div class="collapsible mt-3" id="section-orgs">
+      <button class="collapsible-toggle" onclick="toggleSection('orgs')">
+        <span class="collapsible-arrow">&#9654;</span> All Organizations
+        <span class="badge badge-blue" id="orgCount" style="margin-left:auto">0 total</span>
+      </button>
+      <div class="collapsible-content" id="collapse-orgs">
+        <div style="padding-top:12px">
+          <div class="table-head">
+            <div></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div class="table-search">
+                <span>&#128269;</span>
+                <input type="text" placeholder="Search organizations..." id="orgSearch" oninput="renderTable()">
+              </div>
+              <button class="btn btn-outline" onclick="openInviteModal()">&#128101; Invite People</button>
+              <button class="btn btn-primary" onclick="openAddModal()">+ Add Organization</button>
+            </div>
           </div>
-          <button class="btn btn-outline" onclick="openInviteModal()">&#128101; Invite People</button>
-          <button class="btn btn-primary" onclick="openAddModal()">+ Add Organization</button>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>Organization</th><th>Plant / Unit</th><th>FSSAI License</th><th>Contact</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="orgTableBody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="emptyState" style="display:none">
+            <div class="empty-state-icon">&#127970;</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px">No organizations found</div>
+            <div style="font-size:12px">Add your first organization to get started</div>
+          </div>
         </div>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Organization</th><th>Plant / Unit</th><th>FSSAI License</th><th>Contact</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="orgTableBody"></tbody>
-        </table>
-      </div>
-      <div class="empty-state" id="emptyState" style="display:none">
-        <div class="empty-state-icon">&#127970;</div>
-        <div style="font-size:14px;font-weight:500;margin-bottom:4px">No organizations found</div>
-        <div style="font-size:12px">Add your first organization to get started</div>
       </div>
     </div>
 
-    <!-- Members Section -->
-    <div class="card mt-3">
-      <div class="table-head">
-        <div style="display:flex;align-items:center;gap:12px">
-          <h3 style="margin:0">Team Members</h3>
-          <span class="badge badge-blue" id="memberCount">0 members</span>
+    <!-- Team Members -->
+    <div class="collapsible mt-3" id="section-members">
+      <button class="collapsible-toggle" onclick="toggleSection('members')">
+        <span class="collapsible-arrow">&#9654;</span> Team Members
+        <span class="badge badge-blue" id="memberCount" style="margin-left:auto">0 members</span>
+      </button>
+      <div class="collapsible-content" id="collapse-members">
+        <div style="padding-top:12px">
+          <div class="table-head">
+            <div></div>
+            <button class="btn btn-primary" onclick="openInviteModal()">+ Invite Member</button>
+          </div>
+          <div id="memberTable">Loading...</div>
         </div>
-        <button class="btn btn-primary" onclick="openInviteModal()">+ Invite Member</button>
       </div>
-      <div id="memberTable">Loading...</div>
     </div>
 
-    <!-- Chat Panel -->
-    <div class="card mt-3">
-      <div class="table-head">
-        <h3 style="margin:0">Messages</h3>
-      </div>
-      <div style="display:grid;grid-template-columns:280px 1fr;min-height:400px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
-        <!-- Conversation List -->
-        <div style="border-right:1px solid var(--border);overflow-y:auto;background:var(--muted)" id="convList">
-          <div style="padding:14px;text-align:center;color:var(--muted-foreground);font-size:12px">Loading...</div>
-        </div>
-        <!-- Chat Area -->
-        <div style="display:flex;flex-direction:column;background:var(--background)">
-          <div id="chatHeader" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card)">
-            <div style="font-size:13px;color:var(--muted-foreground)">Select a conversation to start chatting</div>
-          </div>
-          <div id="chatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px"></div>
-          <div id="chatInput" style="padding:12px 16px;border-top:1px solid var(--border);display:none;background:var(--card)">
-            <div style="display:flex;gap:8px">
-              <input type="text" id="msgInput" style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:var(--background);color:var(--foreground);outline:none" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()">
-              <button class="btn btn-primary" onclick="sendMsg()" style="padding:10px 16px">Send</button>
+    <!-- Messages -->
+    <div class="collapsible mt-3" id="section-chat">
+      <button class="collapsible-toggle" onclick="toggleSection('chat')">
+        <span class="collapsible-arrow">&#9654;</span> Messages
+      </button>
+      <div class="collapsible-content" id="collapse-chat">
+        <div style="padding-top:12px">
+          <div class="chat-grid">
+            <div class="conv-list" id="convList">
+              <div style="padding:20px;text-align:center;color:var(--muted-foreground);font-size:12px">Loading...</div>
+            </div>
+            <div class="chat-area">
+              <div id="chatHeader" class="chat-header">
+                <div style="font-size:13px;color:var(--muted-foreground)">Select a conversation to start chatting</div>
+              </div>
+              <div id="chatMessages" class="chat-messages"></div>
+              <div id="chatInput" class="chat-input-bar" style="display:none">
+                <div style="display:flex;gap:8px">
+                  <input type="text" id="msgInput" class="chat-msg-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()">
+                  <button class="btn btn-primary" onclick="sendMsg()" style="padding:10px 16px">Send</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -635,6 +656,14 @@ async function sendMsg(){
 }
 
 loadConversations();
+
+function toggleSection(id){
+  const content=document.getElementById('collapse-'+id);
+  const arrow=document.querySelector('#section-'+id+' .collapsible-arrow');
+  const isOpen=content.classList.contains('open');
+  if(isOpen){content.classList.remove('open');arrow.style.transform='rotate(0deg)';}
+  else{content.classList.add('open');arrow.style.transform='rotate(90deg)';}
+}
 </script>
 </body>
 </html>
