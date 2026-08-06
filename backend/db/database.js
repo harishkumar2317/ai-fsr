@@ -15,53 +15,48 @@ const SCHEMA_SQL = [
     email TEXT, phone TEXT, status TEXT DEFAULT 'Active', compliance_score INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW()
   )`,
-  `ALTER TABLE users ADD CONSTRAINT fk_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL`,
   `CREATE TABLE IF NOT EXISTS audits (
     id SERIAL PRIMARY KEY, audit_id TEXT UNIQUE NOT NULL, type TEXT NOT NULL, organization_id INTEGER,
     plant TEXT, auditor TEXT, date TEXT, score INTEGER, status TEXT DEFAULT 'Scheduled',
-    findings TEXT, created_at TIMESTAMP DEFAULT NOW(), FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    findings TEXT, created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS incidents (
     id SERIAL PRIMARY KEY, incident_id TEXT UNIQUE NOT NULL, title TEXT NOT NULL, description TEXT,
     severity TEXT DEFAULT 'Medium', status TEXT DEFAULT 'Open', organization_id INTEGER,
-    reported_by TEXT, assigned_to TEXT, date TEXT, created_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    reported_by TEXT, assigned_to TEXT, date TEXT, created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS capa (
     id SERIAL PRIMARY KEY, capa_id TEXT UNIQUE NOT NULL, title TEXT NOT NULL, description TEXT,
     type TEXT DEFAULT 'Corrective', priority TEXT DEFAULT 'Medium', status TEXT DEFAULT 'Open',
     organization_id INTEGER, assigned_to TEXT, due_date TEXT, progress INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT NOW(), FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS documents (
     id SERIAL PRIMARY KEY, title TEXT NOT NULL, type TEXT, version TEXT DEFAULT '1.0',
     status TEXT DEFAULT 'Draft', organization_id INTEGER, uploaded_by TEXT, file_path TEXT,
-    created_at TIMESTAMP DEFAULT NOW(), FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS checklist (
-    id SERIAL PRIMARY KEY, title TEXT NOT NULL, category TEXT, frequency TEXT DEFAULT 'Daily',
+    id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, category TEXT, frequency TEXT DEFAULT 'Daily',
     status TEXT DEFAULT 'Pending', assignee TEXT, regulation TEXT, action TEXT,
-    organization_id INTEGER, due_date TEXT, created_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    organization_id INTEGER, due_date TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
   `CREATE TABLE IF NOT EXISTS labels (
     id SERIAL PRIMARY KEY, product_name TEXT NOT NULL, status TEXT DEFAULT 'Pending',
     score INTEGER, issues TEXT, organization_id INTEGER, validated_by TEXT,
-    created_at TIMESTAMP DEFAULT NOW(), FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY, title TEXT NOT NULL, message TEXT, type TEXT DEFAULT 'info',
-    read INTEGER DEFAULT 0, user_id INTEGER, organization_id INTEGER, created_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    read INTEGER DEFAULT 0, user_id INTEGER, organization_id INTEGER, created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS activity_log (
     id SERIAL PRIMARY KEY, user_id INTEGER, action TEXT NOT NULL, details TEXT,
-    ip_address TEXT, created_at TIMESTAMP DEFAULT NOW(), FOREIGN KEY (user_id) REFERENCES users(id)
+    ip_address TEXT, created_at TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY, sender_id INTEGER NOT NULL, receiver_id INTEGER NOT NULL,
-    message TEXT NOT NULL, read INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (sender_id) REFERENCES users(id), FOREIGN KEY (receiver_id) REFERENCES users(id)
+    message TEXT NOT NULL, read INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW()
   )`
 ];
 
@@ -81,6 +76,7 @@ if (USE_PG) {
       for (const sql of SCHEMA_SQL) {
         try { await client.query(sql); } catch(e) {}
       }
+      try { await client.query(`ALTER TABLE users ADD CONSTRAINT fk_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL`); } catch(e) {}
       console.log('PostgreSQL tables created.');
     } finally {
       client.release();
@@ -93,15 +89,61 @@ if (USE_PG) {
   const DB_PATH = path.join(__dirname, 'ai_fsr.db');
   let db;
 
-  function syncQueryAll(sql) {
-    const result = db.exec(sql);
-    if (!result.length) return [];
-    const cols = result[0].columns;
-    return result[0].values.map(row => {
-      const obj = {};
-      cols.forEach((c, i) => obj[c] = row[i]);
-      return obj;
+  function pgToSqlite(sql) {
+    let s = sql;
+    s = s.replace(/SERIAL PRIMARY KEY/g, 'INTEGER PRIMARY KEY AUTOINCREMENT');
+    s = s.replace(/TIMESTAMP DEFAULT NOW\(\)/g, "DEFAULT CURRENT_TIMESTAMP");
+    s = s.replace(/\bTIMESTAMP\b/g, 'TEXT');
+    s = s.replace(/,\s*FOREIGN KEY[^,)]*\([^)]*\)\s*REFERENCES\s*\w+\s*\(\s*id\s*\)[^,)]*/gi, '');
+    return s;
+  }
+
+  function convertQuery(sql, params) {
+    let s = sql;
+    let p = params ? [...params] : [];
+
+    let returningCols = null;
+    const retMatch = s.match(/\bRETURNING\s+([\w\s,*]+?)\s*$/i);
+    if (retMatch) {
+      returningCols = retMatch[1].trim();
+      s = s.replace(/\s*RETURNING\s+[\w\s,*]+?\s*$/i, '');
+    }
+
+    if (p.length) {
+      s = s.replace(/\$(\d+)/g, '?');
+    }
+
+    s = s.replace(/NOW\(\)/g, "CURRENT_TIMESTAMP");
+    s = s.replace(/COUNT\(\*\)::int/gi, 'CAST(COUNT(*) AS INTEGER)');
+
+    s = s.replace(/COUNT\(\*\)\s*FILTER\s*\(WHERE\s+([^)]+)\)\s*::int/gi, (_, cond) => {
+      let c = cond.replace(/\$(\d+)/g, '?');
+      return `CAST(COALESCE(SUM(CASE WHEN ${c} THEN 1 ELSE 0 END), 0) AS INTEGER)`;
     });
+
+    s = s.replace(/COUNT\(\*\)\s*FILTER\s*\(WHERE\s+([^)]+)\)/gi, (_, cond) => {
+      let c = cond.replace(/\$(\d+)/g, '?');
+      return `COALESCE(SUM(CASE WHEN ${c} THEN 1 ELSE 0 END), 0)`;
+    });
+
+    const anyRegex = /(\w+)\s*=\s*ANY\(\?\)/i;
+    const anyMatch = s.match(anyRegex);
+    if (anyMatch) {
+      const col = anyMatch[1];
+      const idx = s.indexOf(`${col} = ANY(?)`);
+      const before = s.substring(0, idx);
+      const paramIdx = (before.match(/\?/g) || []).length;
+      const arr = p[paramIdx];
+      if (Array.isArray(arr)) {
+        if (arr.length === 0) {
+          return { sql: 'SELECT 1 WHERE 0=1', params: [], returningCols: null };
+        }
+        s = s.replace(`${col} = ANY(?)`, `${col} IN (${arr.map(() => '?').join(',')})`);
+        p.splice(paramIdx, 1, ...arr);
+      }
+    }
+
+    return { sql: s, params: p, returningCols };
   }
 
   function saveDB() {
@@ -109,16 +151,18 @@ if (USE_PG) {
     fs.writeFileSync(DB_PATH, Buffer.from(data));
   }
 
+  function execWithParams(sql, params) {
+    const stmt = db.prepare(sql);
+    if (params && params.length) stmt.bind(params);
+    const rows = [];
+    while (stmt.step()) rows.push(stmt.getAsObject());
+    stmt.free();
+    return rows;
+  }
+
   const queryAll = async (sql, params = []) => {
-    if (params.length) {
-      const stmt = db.prepare(sql);
-      stmt.bind(params);
-      const rows = [];
-      while (stmt.step()) rows.push(stmt.getAsObject());
-      stmt.free();
-      return rows;
-    }
-    return syncQueryAll(sql);
+    const converted = convertQuery(sql, params);
+    return execWithParams(converted.sql, converted.params);
   };
 
   const queryOne = async (sql, params = []) => {
@@ -127,16 +171,38 @@ if (USE_PG) {
   };
 
   const runSQL = async (sql, params = []) => {
-    if (params.length) {
-      const stmt = db.prepare(sql);
-      stmt.bind(params);
+    const converted = convertQuery(sql, params);
+    const isInsert = /^\s*INSERT/i.test(converted.sql);
+
+    if (isInsert) {
+      const stmt = db.prepare(converted.sql);
+      if (converted.params.length) stmt.bind(converted.params);
       stmt.step();
       stmt.free();
     } else {
-      db.run(sql);
+      execWithParams(converted.sql, converted.params);
     }
+    const idResult = db.exec('SELECT last_insert_rowid() as id');
+    const id = idResult.length ? idResult[0].values[0][0] : 0;
     saveDB();
-    return { rows: [] };
+
+    if (converted.returningCols && isInsert) {
+      const tableName = converted.sql.match(/INTO\s+(\w+)/i)?.[1];
+      if (tableName && id) {
+        try {
+          const rows = execWithParams(`SELECT * FROM ${tableName} WHERE id = ?`, [id]);
+          return { rows, rowCount: rows.length || 1 };
+        } catch(e) {}
+      }
+      if (converted.returningCols === '*') {
+        return { rows: id ? [{ id }] : [], rowCount: id ? 1 : 0 };
+      }
+      const cols = converted.returningCols.split(',').map(c => c.trim());
+      const row = { id };
+      return { rows: [row], rowCount: 1 };
+    }
+
+    return { rows: [], rowCount: 1, lastID: id };
   };
 
   async function initDB() {
@@ -148,15 +214,8 @@ if (USE_PG) {
     }
     db.run('PRAGMA foreign_keys = ON');
 
-    const SQLiteSchema = SCHEMA_SQL.map(s =>
-      s.replace(/SERIAL PRIMARY KEY/g, 'INTEGER PRIMARY KEY AUTOINCREMENT')
-       .replace(/TIMESTAMP DEFAULT NOW\(\)/g, "DEFAULT CURRENT_TIMESTAMP")
-       .replace(/ALTER TABLE.*FOREIGN KEY.*/g, '')
-       .replace(/FOREIGN KEY.*REFERENCES.*\(id\).*/g, '')
-    ).filter(s => s.trim());
-
-    for (const sql of SQLiteSchema) {
-      try { db.run(sql); } catch(e) {}
+    for (const sql of SCHEMA_SQL) {
+      try { db.run(pgToSqlite(sql)); } catch(e) {}
     }
     saveDB();
     console.log('SQLite database created.');
