@@ -4,12 +4,12 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Compliance Assistant - AI-FSR</title><link rel="stylesheet" href="styles.css">
 <style>
-.chat-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 170px);border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);transition:grid-template-columns .2s ease}
-.chat-layout.sidebar-collapsed{grid-template-columns:0px 1fr}
-.chat-layout.sidebar-collapsed .chat-sidebar{display:none;overflow:hidden}
+.chat-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 170px);border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow)}
+.chat-layout.sidebar-collapsed{grid-template-columns:1fr}
 
 /* ── Sidebar ── */
 .chat-sidebar{background:var(--muted);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.chat-layout.sidebar-collapsed .chat-sidebar{display:none}
 .chat-sidebar-head{padding:16px;border-bottom:1px solid var(--border)}
 .chat-sidebar-body{flex:1;overflow-y:auto;padding:10px}
 .chat-sidebar-foot{padding:12px;border-top:1px solid var(--border);text-align:center}
