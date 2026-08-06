@@ -44,7 +44,7 @@ async function initDB() {
       )
     `);
 
-    await client.query(`ALTER TABLE users ADD CONSTRAINT fk_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL`);
+    try { await client.query(`ALTER TABLE users ADD CONSTRAINT fk_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL`); } catch(e) {}
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS audits (
