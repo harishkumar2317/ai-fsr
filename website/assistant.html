@@ -139,9 +139,8 @@
   <main class="main">
     <div class="topbar" id="topbar"></div>
 
-    <div class="chat-layout">
+    <div class="chat-layout" id="chatLayout">
       <!-- Sidebar -->
-      <div class="chat-sidebar-overlay" id="chatSidebarOverlay" onclick="closeChatSidebar()"></div>
       <div class="chat-sidebar" id="chatSidebar">
         <div class="chat-sidebar-head">
           <button class="btn btn-primary new-chat-btn" onclick="newChat()">+ New Chat</button>
@@ -222,6 +221,7 @@
         </div>
       </div>
     </div>
+    <div class="chat-sidebar-overlay" id="chatSidebarOverlay" onclick="closeChatSidebar()"></div>
   </main>
 </div>
 
@@ -494,7 +494,7 @@ function saveToHistory(q,a){
 function save(){localStorage.setItem(HISTORY_KEY,JSON.stringify(chatHistory));}
 
 function toggleChatSidebar(){
-  const layout=document.querySelector('.chat-layout');
+  const layout=document.getElementById('chatLayout');
   const sidebar=document.getElementById('chatSidebar');
   const overlay=document.getElementById('chatSidebarOverlay');
   if(window.innerWidth<=900){
@@ -505,7 +505,7 @@ function toggleChatSidebar(){
   }
 }
 function closeChatSidebar(){
-  const layout=document.querySelector('.chat-layout');
+  const layout=document.getElementById('chatLayout');
   document.getElementById('chatSidebar').classList.remove('open');
   document.getElementById('chatSidebarOverlay').classList.remove('open');
   layout.classList.remove('sidebar-collapsed');
