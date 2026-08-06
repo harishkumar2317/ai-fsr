@@ -102,6 +102,19 @@ const API = {
     send(receiver_id, message) { return API.post('/messages', { receiver_id, message }); }
   },
 
+  checklist: {
+    list(frequency, category) {
+      let q = '/checklist?';
+      if (frequency) q += 'frequency=' + encodeURIComponent(frequency) + '&';
+      if (category) q += 'category=' + encodeURIComponent(category);
+      return API.get(q.replace(/[&?]$/, ''));
+    },
+    stats() { return API.get('/checklist/stats'); },
+    create(data) { return API.post('/checklist', data); },
+    update(id, data) { return API.put('/checklist/' + id, data); },
+    delete(id) { return API.del('/checklist/' + id); }
+  },
+
   assistant: {
     async chat(messages, onChunk, onDone, onError) {
       try {

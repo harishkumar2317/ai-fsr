@@ -5,6 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Compliance Checklist - AI-FSR</title>
 <link rel="stylesheet" href="styles.css">
+<style>
+.cl-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.cl-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.cl-stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.cl-stat.green::before{background:var(--success)}
+.cl-stat.red::before{background:var(--danger)}
+.cl-stat.yellow::before{background:var(--warning)}
+.cl-stat-val{font-size:28px;font-weight:800;margin-bottom:2px}
+.cl-stat-label{font-size:11px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.cl-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.cl-tabs{display:flex;gap:0;background:var(--muted);border-radius:8px;padding:3px;overflow-x:auto}
+.cl-tab{padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s;color:var(--muted-foreground);border:none;background:none}
+.cl-tab.active{background:var(--primary);color:#fff}
+.cl-tab:hover:not(.active){background:var(--border)}
+.cl-filter{display:flex;align-items:center;gap:6px}
+.cl-filter select{padding:7px 28px 7px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Inter',sans-serif;color:var(--foreground);background:var(--card);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b8aaa' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.cl-add-btn{margin-left:auto}
+/* Card view for mobile */
+.cl-cards{display:none}
+.cl-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;transition:.15s}
+.cl-card:hover{border-color:var(--primary)}
+.cl-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.cl-card-id{font-size:11px;font-weight:700;color:var(--primary);font-family:'JetBrains Mono',monospace}
+.cl-card-title{font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px}
+.cl-card-meta{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted-foreground)}
+.cl-card-meta span{display:flex;align-items:center;gap:3px}
+.cl-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+/* Status pills */
+.st{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.st-compliant{background:rgba(16,185,129,.1);color:#059669}
+.st-non-compliant{background:rgba(239,68,68,.1);color:#dc2626}
+.st-pending{background:rgba(245,158,11,.1);color:#d97706}
+.st-na{background:var(--muted);color:var(--muted-foreground)}
+/* Category pills */
+.cat{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--muted);color:var(--muted-foreground)}
+/* Modal */
+.cl-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.cl-modal-overlay.open{display:flex}
+.cl-modal{background:var(--card);border-radius:14px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.cl-modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border)}
+.cl-modal-head h2{font-size:17px;font-weight:700}
+.cl-modal-close{width:32px;height:32px;border:none;background:var(--muted);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);transition:.15s}
+.cl-modal-close:hover{background:var(--danger);color:#fff}
+.cl-modal-body{padding:20px 24px}
+.cl-modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.cl-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cl-form-group{display:flex;flex-direction:column;gap:5px}
+.cl-form-group.full{grid-column:1/-1}
+.cl-form-label{font-size:12px;font-weight:600;color:var(--foreground)}
+.cl-form-input{padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif;color:var(--foreground);background:var(--background);transition:.2s}
+.cl-form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(2,132,199,.1)}
+select.cl-form-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b8aaa' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-color:var(--background)}
+@media(max-width:900px){
+  .cl-stats{grid-template-columns:repeat(3,1fr)}
+  .cl-controls{flex-direction:column;align-items:stretch}
+  .cl-tabs{justify-content:flex-start}
+  .cl-add-btn{margin-left:0}
+  .cl-form-grid{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .cl-stats{grid-template-columns:1fr}
+  .cl-table-wrap{display:none!important}
+  .cl-cards{display:block}
+}
+@media(max-width:480px){
+  .cl-stat-val{font-size:22px}
+  .cl-tab{padding:6px 12px;font-size:11px}
+}
+</style>
 </head>
 <body>
 <script>if(!localStorage.getItem('fsr_token'))window.location.href='login.html';</script>
@@ -13,63 +83,285 @@
   <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
   <main class="main">
     <div class="topbar" id="topbar"></div>
-    <div class="row">
-      <div></div>
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="toast('New item added')">+ Add Item</button>
-        <button class="btn btn-outline" onclick="toast('Checklist submitted')">Submit Checklist</button>
-      </div>
+
+    <div class="cl-stats" id="clStats">
+      <div class="cl-stat green"><div class="cl-stat-val" style="color:var(--success)" id="statCompliant">0</div><div class="cl-stat-label">Compliant</div></div>
+      <div class="cl-stat red"><div class="cl-stat-val" style="color:var(--danger)" id="statNonCompliant">0</div><div class="cl-stat-label">Non-Compliant</div></div>
+      <div class="cl-stat yellow"><div class="cl-stat-val" style="color:var(--warning)" id="statPending">0</div><div class="cl-stat-label">Pending Review</div></div>
     </div>
 
-    <div class="grid grid-3">
-      <div class="stat-card" style="border-left:4px solid var(--success)">
-        <div class="stat-num" style="color:var(--success)">6</div>
-        <div class="stat-sub">Compliant</div>
+    <div class="card">
+      <div class="cl-controls">
+        <div class="cl-tabs" id="clTabs">
+          <button class="cl-tab active" data-freq="Daily" onclick="switchFreq(this)">Daily</button>
+          <button class="cl-tab" data-freq="Weekly" onclick="switchFreq(this)">Weekly</button>
+          <button class="cl-tab" data-freq="Monthly" onclick="switchFreq(this)">Monthly</button>
+        </div>
+        <div class="cl-filter">
+          <select id="clCategory" onchange="loadChecklists()">
+            <option value="All">All Categories</option>
+            <option value="Personal Hygiene">Personal Hygiene</option>
+            <option value="Temperature Control">Temperature Control</option>
+            <option value="Pest Control">Pest Control</option>
+            <option value="Allergen Control">Allergen Control</option>
+            <option value="HACCP">HACCP</option>
+            <option value="Sanitation">Sanitation</option>
+            <option value="Documentation">Documentation</option>
+            <option value="Training">Training</option>
+          </select>
+        </div>
+        <button class="btn btn-primary cl-add-btn" onclick="openAddModal()">+ Add Item</button>
       </div>
-      <div class="stat-card" style="border-left:4px solid var(--danger)">
-        <div class="stat-num" style="color:var(--danger)">1</div>
-        <div class="stat-sub">Non-Compliant</div>
-      </div>
-      <div class="stat-card" style="border-left:4px solid var(--warning)">
-        <div class="stat-num" style="color:var(--warning)">2</div>
-        <div class="stat-sub">Pending Review</div>
-      </div>
-    </div>
 
-    <div class="card mt-3">
-      <div class="tabs" id="checklistTabs">
-        <div class="tab active" onclick="switchTab(this)">Daily Checklist</div>
-        <div class="tab" onclick="switchTab(this)">Weekly Checklist</div>
-        <div class="tab" onclick="switchTab(this)">Monthly Checklist</div>
+      <div class="cl-table-wrap" style="overflow-x:auto">
+        <table>
+          <thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Regulation</th><th>Assignee</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="clTableBody"></tbody>
+        </table>
+        <div id="clEmpty" style="display:none;text-align:center;padding:40px 20px;color:var(--muted-foreground)">
+          <div style="font-size:36px;margin-bottom:8px;opacity:.4">&#9745;</div>
+          <div style="font-size:14px;font-weight:500">No checklist items</div>
+          <div style="font-size:12px;margin-top:4px">Add items to start tracking compliance</div>
+        </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <span style="font-size:12px;color:var(--muted-foreground);margin-right:8px">Category:</span>
-        <select style="padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px"><option>All</option><option>Personal Hygiene</option><option>Temperature Control</option><option>Pest Control</option><option>Allergen Control</option><option>HACCP</option><option>Sanitation</option></select>
-      </div>
-      <table>
-        <tr><th>ID</th><th>Category</th><th>Description</th><th>Regulation</th><th>Assignee</th><th>Due</th><th>Status</th><th>Action</th></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-001</td><td><span class="pill gray">Personal Hygiene</span></td><td>Hand washing facilities available and functional at all entry points</td><td>GMP 4.2.1</td><td>Ravi Kumar</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-002</td><td><span class="pill gray">Personal Hygiene</span></td><td>All staff wearing appropriate PPE (gloves, hairnet, aprons)</td><td>GMP 4.2.3</td><td>Ravi Kumar</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-003</td><td><span class="pill gray">Temperature Control</span></td><td>Cold storage units maintaining 2°C–8°C (chilled zone)</td><td>FSSAI 2.4.6</td><td>Priya Sharma</td><td>2026-08-03</td><td><span class="pill red">&#9679; Non-Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-004</td><td><span class="pill gray">Temperature Control</span></td><td>Frozen storage maintaining -18°C or below</td><td>FSSAI 2.4.7</td><td>Priya Sharma</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-005</td><td><span class="pill gray">Pest Control</span></td><td>Pest control logs updated and bait stations inspected</td><td>GHP 3.1.2</td><td>Amit Patel</td><td>2026-08-05</td><td><span class="pill yellow">&#9679; Pending</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-006</td><td><span class="pill gray">Allergen Control</span></td><td>Allergen cleaning validation records maintained</td><td>FSSAI 3.1.8</td><td>Sunita Rao</td><td>2026-08-05</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-007</td><td><span class="pill gray">HACCP</span></td><td>CCP monitoring records verified and signed off</td><td>HACCP Principle 4</td><td>Ravi Kumar</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-008</td><td><span class="pill gray">HACCP</span></td><td>Corrective action records for any CCP deviation</td><td>HACCP Principle 5</td><td>Sunita Rao</td><td>—</td><td><span class="pill gray">N/A</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">CHK-009</td><td><span class="pill gray">Sanitation</span></td><td>Equipment cleaning and sanitization logs completed</td><td>GMP 5.1.1</td><td>Amit Patel</td><td>2026-08-03</td><td><span class="pill green">&#9679; Compliant</span></td><td><button class="btn btn-outline btn-sm" onclick="toast('Update form opened')">Update</button></td></tr>
-      </table>
+
+      <div class="cl-cards" id="clCards"></div>
     </div>
   </main>
 </div>
-<script src="api.js"></script>`n<script src="app.js"></script>
-<script>
-renderShell(3,'Compliance Checklist','Daily inspection — Tuesday, 4 August 2026','Checklist');
 
-function switchTab(el){
-  document.querySelectorAll('#checklistTabs .tab').forEach(t=>t.classList.remove('active'));
+<!-- Add/Edit Modal -->
+<div class="cl-modal-overlay" id="clModal">
+  <div class="cl-modal">
+    <div class="cl-modal-head">
+      <h2 id="clModalTitle">Add Checklist Item</h2>
+      <button class="cl-modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="cl-modal-body">
+      <div class="cl-form-grid">
+        <div class="cl-form-group full">
+          <label class="cl-form-label">Description *</label>
+          <input type="text" class="cl-form-input" id="clTitle" placeholder="e.g., Hand washing facilities available at all entry points">
+        </div>
+        <div class="cl-form-group">
+          <label class="cl-form-label">Category</label>
+          <select class="cl-form-input" id="clCat">
+            <option value="Personal Hygiene">Personal Hygiene</option>
+            <option value="Temperature Control">Temperature Control</option>
+            <option value="Pest Control">Pest Control</option>
+            <option value="Allergen Control">Allergen Control</option>
+            <option value="HACCP">HACCP</option>
+            <option value="Sanitation">Sanitation</option>
+            <option value="Documentation">Documentation</option>
+            <option value="Training">Training</option>
+          </select>
+        </div>
+        <div class="cl-form-group">
+          <label class="cl-form-label">Frequency</label>
+          <select class="cl-form-input" id="clFreq">
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="cl-form-group">
+          <label class="cl-form-label">Assignee</label>
+          <input type="text" class="cl-form-input" id="clAssignee" placeholder="e.g., Ravi Kumar">
+        </div>
+        <div class="cl-form-group">
+          <label class="cl-form-label">Regulation</label>
+          <input type="text" class="cl-form-input" id="clRegulation" placeholder="e.g., GMP 4.2.1">
+        </div>
+        <div class="cl-form-group">
+          <label class="cl-form-label">Due Date</label>
+          <input type="date" class="cl-form-input" id="clDue">
+        </div>
+        <div class="cl-form-group">
+          <label class="cl-form-label">Status</label>
+          <select class="cl-form-input" id="clStatus">
+            <option value="Pending">Pending</option>
+            <option value="Compliant">Compliant</option>
+            <option value="Non-Compliant">Non-Compliant</option>
+            <option value="N/A">N/A</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="cl-modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+renderShell(3,'Compliance Checklist','Track and manage food safety compliance items','Checklist');
+
+let editId=null;
+let currentFreq='Daily';
+
+function switchFreq(el){
+  document.querySelectorAll('.cl-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  toast('Switched to '+el.textContent);
+  currentFreq=el.dataset.freq;
+  loadChecklists();
 }
+
+function statusClass(s){
+  if(s==='Compliant')return'st-compliant';
+  if(s==='Non-Compliant')return'st-non-compliant';
+  if(s==='Pending')return'st-pending';
+  return'st-na';
+}
+
+function statusIcon(s){
+  if(s==='Compliant')return'&#10003;';
+  if(s==='Non-Compliant')return'&#10007;';
+  if(s==='Pending')return'&#9679;';
+  return'&mdash;';
+}
+
+function catColor(c){
+  const m={'Personal Hygiene':'#8b5cf6','Temperature Control':'#0ea5e9','Pest Control':'#f59e0b','Allergen Control':'#ef4444','HACCP':'#10b981','Sanitation':'#06b6d4','Documentation':'#6366f1','Training':'#ec4899'};
+  return m[c]||'var(--muted-foreground)';
+}
+
+async function loadStats(){
+  try{
+    const s=await API.checklist.stats();
+    document.getElementById('statCompliant').textContent=s.compliant||0;
+    document.getElementById('statNonCompliant').textContent=s.non_compliant||0;
+    document.getElementById('statPending').textContent=s.pending||0;
+  }catch(e){}
+}
+
+async function loadChecklists(){
+  try{
+    const cat=document.getElementById('clCategory').value;
+    const data=await API.checklist.list(currentFreq,cat);
+    const items=data.checklists||[];
+    renderTable(items);
+    renderCards(items);
+    loadStats();
+  }catch(e){console.log('Load checklists failed:',e);}
+}
+
+function renderTable(items){
+  const tbody=document.getElementById('clTableBody');
+  const empty=document.getElementById('clEmpty');
+  if(!items.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=items.map(it=>`<tr>
+    <td style="color:var(--primary);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">${it.id}</td>
+    <td><span class="cat" style="background:${catColor(it.category)}20;color:${catColor(it.category)}">${esc(it.category||'General')}</span></td>
+    <td style="max-width:280px">${esc(it.title)}</td>
+    <td style="font-size:12px;color:var(--muted-foreground)">${esc(it.regulation||'—')}</td>
+    <td>${esc(it.assignee||'—')}</td>
+    <td style="font-size:12px">${it.due_date?new Date(it.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—'}</td>
+    <td><span class="st ${statusClass(it.status)}">${statusIcon(it.status)} ${esc(it.status)}</span></td>
+    <td><div style="display:flex;gap:4px">
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openEditModal(${it.id})">Edit</button>
+      <button class="btn btn-outline del" style="padding:4px 8px;font-size:11px;color:var(--danger);border-color:var(--danger)" onclick="deleteItem(${it.id})">&#10005;</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function renderCards(items){
+  const el=document.getElementById('clCards');
+  if(!items.length){el.innerHTML='';return;}
+  el.innerHTML=items.map(it=>`<div class="cl-card">
+    <div class="cl-card-head">
+      <span class="cl-card-id">#${it.id}</span>
+      <span class="st ${statusClass(it.status)}" style="font-size:10px">${statusIcon(it.status)} ${esc(it.status)}</span>
+    </div>
+    <div class="cl-card-title">${esc(it.title)}</div>
+    <div class="cl-card-meta">
+      <span style="color:${catColor(it.category)}">&#9679; ${esc(it.category||'General')}</span>
+      <span>&#128197; ${it.due_date?new Date(it.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'No due'}</span>
+      ${it.assignee?`<span>&#128100; ${esc(it.assignee)}</span>`:''}
+      ${it.regulation?`<span>&#128220; ${esc(it.regulation)}</span>`:''}
+    </div>
+    <div class="cl-card-foot">
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openEditModal(${it.id})">Edit</button>
+        <button class="btn btn-outline" style="padding:4px 8px;font-size:11px;color:var(--danger);border-color:var(--danger)" onclick="deleteItem(${it.id})">&#10005;</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function esc(s){return(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function openAddModal(){
+  editId=null;
+  document.getElementById('clModalTitle').textContent='Add Checklist Item';
+  document.getElementById('clTitle').value='';
+  document.getElementById('clCat').value='Personal Hygiene';
+  document.getElementById('clFreq').value=currentFreq;
+  document.getElementById('clAssignee').value='';
+  document.getElementById('clRegulation').value='';
+  document.getElementById('clDue').value='';
+  document.getElementById('clStatus').value='Pending';
+  document.getElementById('clModal').classList.add('open');
+}
+
+async function openEditModal(id){
+  try{
+    const data=await API.checklist.list(currentFreq);
+    const it=(data.checklists||[]).find(x=>x.id===id);
+    if(!it)return;
+    editId=id;
+    document.getElementById('clModalTitle').textContent='Edit Checklist Item';
+    document.getElementById('clTitle').value=it.title||'';
+    document.getElementById('clCat').value=it.category||'Personal Hygiene';
+    document.getElementById('clFreq').value=it.frequency||'Daily';
+    document.getElementById('clAssignee').value=it.assignee||'';
+    document.getElementById('clRegulation').value=it.regulation||'';
+    document.getElementById('clDue').value=it.due_date?it.due_date.split('T')[0]:'';
+    document.getElementById('clStatus').value=it.status||'Pending';
+    document.getElementById('clModal').classList.add('open');
+  }catch(e){toast('Failed to load item');}
+}
+
+function closeModal(){document.getElementById('clModal').classList.remove('open');}
+
+async function saveItem(){
+  const title=document.getElementById('clTitle').value.trim();
+  if(!title){toast('Description is required');return;}
+  const data={
+    title,
+    category:document.getElementById('clCat').value,
+    frequency:document.getElementById('clFreq').value,
+    assignee:document.getElementById('clAssignee').value.trim(),
+    regulation:document.getElementById('clRegulation').value.trim(),
+    due_date:document.getElementById('clDue').value||null,
+    status:document.getElementById('clStatus').value
+  };
+  try{
+    if(editId){
+      await API.checklist.update(editId,data);
+      toast('Item updated');
+    }else{
+      await API.checklist.create(data);
+      toast('Item added');
+    }
+    closeModal();
+    loadChecklists();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function deleteItem(id){
+  if(!confirm('Delete this checklist item?'))return;
+  try{
+    await API.checklist.delete(id);
+    toast('Item deleted');
+    loadChecklists();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+loadChecklists();
 </script>
 </body>
 </html>
