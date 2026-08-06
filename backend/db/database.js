@@ -2,7 +2,7 @@ const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'ai_fsr.db');
+const DB_PATH = (fs.existsSync('/data') ? '/data' : path.join(__dirname)) + '/ai_fsr.db';
 let db;
 
 async function initDB() {
@@ -20,6 +20,8 @@ async function initDB() {
   createTables();
   seedDemoData();
   saveDB();
+
+  setInterval(saveDB, 30000);
 
   return db;
 }
@@ -207,6 +209,7 @@ function runSQL(sql, params = []) {
   stmt.bind(params);
   stmt.step();
   stmt.free();
+  saveDB();
 }
 
 module.exports = { initDB, getDB, saveDB, runSQL };

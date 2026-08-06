@@ -85,6 +85,10 @@ async function start() {
       console.log(`API: http://${HOST}:${PORT}/api/health`);
       console.log(`Frontend: http://${HOST}:${PORT}/`);
     });
+
+    const { saveDB } = require('./db/database');
+    process.on('SIGTERM', () => { saveDB(); process.exit(0); });
+    process.on('SIGINT', () => { saveDB(); process.exit(0); });
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);
