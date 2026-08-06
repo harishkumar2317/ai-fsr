@@ -77,6 +77,12 @@ if (USE_PG) {
         try { await client.query(sql); } catch(e) {}
       }
       try { await client.query(`ALTER TABLE users ADD CONSTRAINT fk_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL`); } catch(e) {}
+      try { await client.query(`ALTER TABLE checklist ADD COLUMN IF NOT EXISTS action TEXT`); } catch(e) {}
+      try { await client.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS fssai_category TEXT DEFAULT 'State'`); } catch(e) {}
+      try { await client.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS contact_person TEXT`); } catch(e) {}
+      try { await client.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS designation TEXT`); } catch(e) {}
+      try { await client.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS email TEXT`); } catch(e) {}
+      try { await client.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS read INTEGER DEFAULT 0`); } catch(e) {}
       console.log('PostgreSQL tables created.');
     } finally {
       client.release();

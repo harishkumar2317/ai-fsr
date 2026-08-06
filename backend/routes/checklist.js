@@ -73,7 +73,7 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
-router.post('/', authenticate, authorize('super_admin', 'admin', 'food_safety_officer'), async (req, res) => {
+router.post('/', authenticate, authorize('super_admin', 'admin', 'food_safety_officer', 'qa_manager', 'quality_inspector', 'hygiene_supervisor', 'production_manager', 'internal_auditor'), async (req, res) => {
   try {
     const { title, category, frequency, assignee, regulation, action, due_date, status } = req.body;
     if (!title) return res.status(400).json({ error: 'Title is required.' });
@@ -92,7 +92,7 @@ router.post('/', authenticate, authorize('super_admin', 'admin', 'food_safety_of
   }
 });
 
-router.put('/:id', authenticate, authorize('super_admin', 'admin', 'food_safety_officer'), async (req, res) => {
+router.put('/:id', authenticate, authorize('super_admin', 'admin', 'food_safety_officer', 'qa_manager', 'quality_inspector', 'hygiene_supervisor', 'production_manager', 'internal_auditor'), async (req, res) => {
   try {
     const { title, category, frequency, assignee, regulation, action, due_date, status } = req.body;
     const r = await runSQL(
