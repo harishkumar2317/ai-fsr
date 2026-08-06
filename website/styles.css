@@ -168,13 +168,13 @@ a{text-decoration:none;color:inherit}
 .sys-dot{width:7px;height:7px;border-radius:50%;background:#16a34a}
 
 /* ── Search ── */
-.search-wrap{position:relative}
+.search-wrap{position:relative;flex-shrink:0}
 .search-input{
   padding:7px 12px 7px 32px;border:1.5px solid var(--border);border-radius:999px;
-  font-size:12.5px;font-family:'Inter',sans-serif;width:200px;
+  font-size:12.5px;font-family:'Inter',sans-serif;width:180px;
   background:var(--muted);color:var(--foreground);transition:.2s
 }
-.search-input:focus{outline:none;border-color:var(--primary);background:var(--card);width:260px;box-shadow:var(--shadow-sm)}
+.search-input:focus{outline:none;border-color:var(--primary);background:var(--card);width:220px;box-shadow:var(--shadow-sm)}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted-foreground)}
 .search-panel{
   position:absolute;top:calc(100% + 6px);right:0;width:360px;
@@ -391,13 +391,13 @@ textarea{min-height:70px;resize:vertical}
   .grid-3{grid-template-columns:repeat(2,1fr)}
   .grid-2{grid-template-columns:1fr}
   .main{padding:14px 16px}
-  .search-input{width:120px}
-  .search-input:focus{width:160px}
+  .search-input{width:160px}
+  .search-input:focus{width:200px}
   .kanban{grid-template-columns:1fr}
   .settings-panel{width:100%;max-width:100%}
   .notif-panel{right:0;width:calc(100vw - 32px);max-width:360px}
   .topbar{flex-direction:column;gap:12px}
-  .topbar .right{width:100%;justify-content:flex-end;flex-wrap:wrap}
+  .topbar .right{width:100%;display:flex;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:8px}
   .topbar h1{font-size:18px}
   .stat-num{font-size:24px}
   .bar-label{width:100px;font-size:11px}
