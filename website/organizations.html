@@ -228,22 +228,27 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 <script>
 renderShell(1,'Organizations','Manage your organization and plant units','Organizations');
 
-const ORG_KEY='fsr_organizations';
-let organizations=JSON.parse(localStorage.getItem(ORG_KEY)||'null');
+let organizations=[];
 let editingId=null;
 let deletingId=null;
 
-const DEMO_ORGS=[
-  {id:1,name:'AgroFood Industries Ltd.',plant:'Main Factory',code:'PLT-001',address:'Sector 15, Noida, UP',license:'12345678901234',category:'Central',contact:'Priya Sharma',designation:'Quality Manager',email:'priya.sharma@agrofood.in',phone:'+91 98765 43210',status:'Active',score:91,created:'2025-01-15'},
-  {id:2,name:'AgroFood Industries Ltd.',plant:'Unit B - Dairy',code:'PLT-002',address:'Sector 16, Noida, UP',license:'12345678901235',category:'Central',contact:'Ravi Kumar',designation:'Food Safety Officer',email:'ravi.kumar@agrofood.in',phone:'+91 98765 43211',status:'Active',score:87,created:'2025-03-20'},
-  {id:3,name:'FreshCatch Seafoods',plant:'Processing Plant',code:'PLT-003',address:'Mumbai Port, Maharashtra',license:'23456789012345',category:'Central',contact:'Anita Desai',designation:'QA Head',email:'anita@freshcatch.in',phone:'+91 97654 32109',status:'Active',score:78,created:'2025-06-10'},
-  {id:4,name:'GreenHarvest Organics',plant:'Packaging Unit',code:'PLT-004',address:'Pune, Maharashtra',license:'34567890123456',category:'State',contact:'Meera Joshi',designation:'Compliance Lead',email:'meera@greenharvest.in',phone:'+91 96543 21098',status:'Pending',score:0,created:'2026-07-01'},
-  {id:5,name:'SpiceRoute Foods',plant:'Spice Grinding Unit',code:'PLT-005',address:'Kochi, Kerala',license:'45678901234567',category:'State',contact:'Arjun Nair',designation:'Plant Manager',email:'arjun@spiceroute.in',phone:'+91 95432 10987',status:'Inactive',score:62,created:'2024-11-20'}
-];
+async function loadOrgs(){
+  try{
+    const data=await API.organizations.list();
+    if(data&&data.organizations){
+      organizations=data.organizations.map(o=>({
+        id:o.id,name:o.name,plant:o.plant,code:o.code||'',address:o.address||'',
+        license:o.fssai_license,category:o.fssai_category||'State',
+        contact:o.contact_person||'',designation:o.designation||'',
+        email:o.email||'',phone:o.phone||'',status:o.status||'Active',
+        score:o.compliance_score||0,created:o.created_at||''
+      }));
+    }
+  }catch(e){console.log('Load orgs failed:',e);}
+  renderStats();renderTable();
+}
 
-if(!organizations){organizations=DEMO_ORGS;save();}
-
-function save(){localStorage.setItem(ORG_KEY,JSON.stringify(organizations));}
+loadOrgs();
 
 function getStats(){
   const total=organizations.length;
@@ -342,7 +347,7 @@ function clearForm(){
   document.getElementById('fStatus').value='Active';
 }
 
-function saveOrg(){
+async function saveOrg(){
   const name=document.getElementById('fName').value.trim();
   const plant=document.getElementById('fPlant').value.trim();
   const license=document.getElementById('fLicense').value.trim();
@@ -352,28 +357,25 @@ function saveOrg(){
     name,plant,
     code:document.getElementById('fCode').value.trim(),
     address:document.getElementById('fAddress').value.trim(),
-    license,
-    category:document.getElementById('fCategory').value,
-    contact,
+    fssai_license:license,
+    fssai_category:document.getElementById('fCategory').value,
+    contact_person:contact,
     designation:document.getElementById('fDesignation').value.trim(),
     email:document.getElementById('fEmail').value.trim(),
     phone:document.getElementById('fPhone').value.trim(),
     status:document.getElementById('fStatus').value,
-    score:parseInt(document.getElementById('fScore').value)||0
+    compliance_score:parseInt(document.getElementById('fScore').value)||0
   };
-  if(editingId){
-    const idx=organizations.findIndex(o=>o.id===editingId);
-    if(idx>=0){organizations[idx]={...organizations[idx],...data};}
-    toast('Organization updated');
-  } else {
-    data.id=Date.now();
-    data.created=new Date().toISOString().slice(0,10);
-    organizations.push(data);
-    toast('Organization added');
-  }
-  save();
-  renderStats();
-  renderTable();
+  try{
+    if(editingId){
+      await API.organizations.update(editingId,data);
+      toast('Organization updated');
+    } else {
+      await API.organizations.create(data);
+      toast('Organization added');
+    }
+    await loadOrgs();
+  }catch(e){toast('Error: '+e.message);}
   closeModal();
 }
 
@@ -387,14 +389,14 @@ function openDeleteModal(id){
 
 function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('open');deletingId=null;}
 
-function confirmDelete(){
+async function confirmDelete(){
   if(!deletingId)return;
-  organizations=organizations.filter(o=>o.id!==deletingId);
-  save();
-  renderStats();
-  renderTable();
+  try{
+    await API.organizations.delete(deletingId);
+    toast('Organization deleted');
+    await loadOrgs();
+  }catch(e){toast('Error: '+e.message);}
   closeDeleteModal();
-  toast('Organization deleted');
 }
 
 /* ── Invite ── */

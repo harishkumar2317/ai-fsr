@@ -15,45 +15,50 @@
     <div class="topbar" id="topbar"></div>
     <div class="row">
       <div></div>
-      <button class="btn btn-primary" onclick="toast('Incident form opened')">+ Report Incident</button>
+      <button class="btn btn-primary" onclick="toast('Incident form coming soon')">+ Report Incident</button>
     </div>
 
-    <div class="grid grid-4">
-      <div class="stat-card"><div class="stat-num" style="color:var(--primary)">18</div><div class="stat-sub">Total Incidents (YTD)</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--danger)">2</div><div class="stat-sub">Open</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--warning)">3</div><div class="stat-sub">In Progress</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--success)">4.2d</div><div class="stat-sub">Avg Resolution Time</div></div>
-    </div>
-
-    <div class="card mt-3">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted-foreground);font-weight:600;margin-bottom:14px">Incident Response Workflow</div>
-      <div class="workflow">
-        <div class="wf-step"><div class="wf-num" style="background:var(--primary)">1</div><div class="wf-label">Incident<br>Reported</div></div>
-        <div class="wf-line"></div>
-        <div class="wf-step"><div class="wf-num" style="background:var(--accent)">2</div><div class="wf-label">Risk<br>Assessment</div></div>
-        <div class="wf-line"></div>
-        <div class="wf-step"><div class="wf-num" style="background:var(--warning)">3</div><div class="wf-label">CAPA<br>Created</div></div>
-        <div class="wf-line"></div>
-        <div class="wf-step"><div class="wf-num" style="background:#8b5cf6">4</div><div class="wf-label">Verification</div></div>
-        <div class="wf-line"></div>
-        <div class="wf-step"><div class="wf-num" style="background:var(--success)">5</div><div class="wf-label">Closure</div></div>
-      </div>
+    <div class="grid grid-4" id="incidentStats">
+      <div class="stat-card"><div class="stat-num" style="color:var(--primary)">—</div><div class="stat-sub">Total Incidents</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--danger)">—</div><div class="stat-sub">Open</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--warning)">—</div><div class="stat-sub">In Progress</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--success)">—</div><div class="stat-sub">Closed</div></div>
     </div>
 
     <div class="card mt-3">
       <h3 style="margin-bottom:12px">Incidents</h3>
-      <table>
-        <tr><th>ID</th><th>Type</th><th>Plant</th><th>Severity</th><th>Reported</th><th>Reporter</th><th>Status</th></tr>
-        <tr><td style="color:var(--primary);font-weight:500">INC-2026-018</td><td>Temperature Violation</td><td>Cold Storage</td><td><span class="pill red">&#9679; High</span></td><td>2026-08-02</td><td>Priya Sharma</td><td><span class="pill red">Open</span></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">INC-2026-017</td><td>Hygiene Issue</td><td>Main Factory</td><td><span class="pill yellow">&#9679; Medium</span></td><td>2026-07-30</td><td>Ravi Kumar</td><td><span class="pill yellow">In Progress</span></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">INC-2026-016</td><td>Equipment Failure</td><td>Processing Unit B</td><td><span class="pill green">&#9679; Low</span></td><td>2026-07-28</td><td>Amit Patel</td><td><span class="pill green">Closed</span></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">INC-2026-015</td><td>Customer Complaint</td><td>Main Factory</td><td><span class="pill red">&#9679; High</span></td><td>2026-07-25</td><td>Sunita Rao</td><td><span class="pill yellow">In Progress</span></td></tr>
-        <tr><td style="color:var(--primary);font-weight:500">INC-2026-014</td><td>Food Contamination</td><td>Main Factory</td><td><span class="pill red">&#9679; Critical</span></td><td>2026-07-20</td><td>Ravi Kumar</td><td><span class="pill green">Closed</span></td></tr>
-      </table>
+      <div id="incidentTable">Loading...</div>
     </div>
   </main>
 </div>
 <script src="api.js"></script>`n<script src="app.js"></script>
-<script>renderShell(7,'Incident Management','Track, assess, and resolve food safety incidents with AI-assisted risk analysis','Incidents');</script>
+<script>
+renderShell(7,'Incident Management','Track, assess, and resolve food safety incidents with AI-assisted risk analysis','Incidents');
+
+async function loadIncidents(){
+  const el=document.getElementById('incidentTable');
+  try{
+    const data=await API.incidents.list();
+    const incidents=data.incidents||[];
+    const total=incidents.length;
+    const open=incidents.filter(i=>i.status==='Open').length;
+    const prog=incidents.filter(i=>i.status==='In Progress').length;
+    const closed=incidents.filter(i=>i.status==='Closed').length;
+    const stats=document.querySelectorAll('#incidentStats .stat-num');
+    if(stats[0])stats[0].textContent=total;
+    if(stats[1])stats[1].textContent=open;
+    if(stats[2])stats[2].textContent=prog;
+    if(stats[3])stats[3].textContent=closed;
+    if(!incidents.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted-foreground)">No incidents found for your organization</div>';return;}
+    el.innerHTML=`<table><tr><th>ID</th><th>Title</th><th>Severity</th><th>Reported By</th><th>Date</th><th>Status</th></tr>${incidents.map(i=>{
+      const sevCls=i.severity==='Critical'||i.severity==='High'?'red':i.severity==='Medium'?'yellow':'green';
+      const stCls=i.status==='Open'?'red':i.status==='In Progress'?'yellow':'green';
+      return `<tr><td style="color:var(--primary);font-weight:500">INC-${i.id}</td><td>${esc(i.title)}</td><td><span class="pill ${sevCls}">${esc(i.severity||'Medium')}</span></td><td>${esc(i.reported_by||'')}</td><td>${esc(i.date||i.created_at||'')}</td><td><span class="pill ${stCls}">${esc(i.status||'Open')}</span></td></tr>`;
+    }).join('')}</table>`;
+  }catch(e){el.innerHTML='<div style="padding:20px;color:var(--danger)">Failed to load incidents</div>';}
+}
+function esc(s){return(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+loadIncidents();
+</script>
 </body>
 </html>
