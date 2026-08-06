@@ -56,6 +56,7 @@ app.use('/api/incidents', require('./routes/incidents'));
 app.use('/api/capa', require('./routes/capa'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/invite', require('./routes/invite'));
+app.use('/api/assistant', require('./routes/assistant'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });

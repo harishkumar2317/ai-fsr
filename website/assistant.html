@@ -200,18 +200,8 @@
 <script>
 renderShell(2,'AI Compliance Assistant','','AI Compliance Assistant');
 
-const ANSWERS={
-  'fssai license':{text:'FSSAI License Renewal Requirements:\n\n1. Submit renewal application at least 30 days before expiry via FoSCoS portal\n2. Updated Form B with current details\n3. Valid Food Safety Management Plan (FSMS)\n4. Updated list of food categories\n5. Fee payment: \u20b92000\u2013\u20b97500 depending on category\n6. Valid water test report from NABL-accredited lab\n7. NOC from local municipal authority',source:'FSS (Licensing & Registration) Regulation 2011, Rule 5'},
-  'haccp':{text:'HACCP Principles for Dairy Processing:\n\n1. Conduct Hazard Analysis \u2014 identify biological (Listeria, Salmonella), chemical, physical hazards\n2. Determine Critical Control Points (CCP) \u2014 pasteurization, cold storage\n3. Set Critical Limits \u2014 e.g., pasteurization at 72\u00b0C for 15 seconds\n4. Establish Monitoring \u2014 temperature logs every 2 hours\n5. Corrective Actions \u2014 reprocess or discard if CCP exceeded\n6. Verification \u2014 calibrate thermometers weekly, audit records monthly\n7. Record Keeping \u2014 maintain HACCP plan, monitoring records, corrective action logs',source:'Codex Alimentarius / FSSAI HACCP Guidelines'},
-  'gmp':{text:'GMP Requirements for Food Packaging:\n\n\u2022 Cleanroom standards for direct-contact packaging\n\u2022 Material safety \u2014 food-grade certifications required\n\u2022 Printing inks must be food-safe compliant\n\u2022 Storage: separate from raw materials, FIFO rotation\n\u2022 Line clearance procedures between product changeovers\n\u2022 Worker hygiene: hairnets, gloves, no jewelry\n\u2022 Pest control measures in packaging areas\n\u2022 Regular equipment calibration and maintenance',source:'Schedule 4, FSS (Licensing & Registration) Regulation 2011'},
-  'iso 22000':{text:'ISO 22000 Compliance Gaps (typical):\n\n1. Food Safety Policy not communicated to all staff\n2. HACCP team lacks cross-functional representation\n3. Prerequisite programs (PRPs) incomplete\n4. Traceability system not fully automated\n5. Emergency preparedness plan outdated\n6. Internal audit program not annual\n7. Management review minutes missing\n8. Corrective action effectiveness not verified\n9. Customer complaint trend analysis absent\n10. Continual improvement targets not set',source:'ISO 22000:2018 Standard Requirements'},
-  'allergen':{text:'Mandatory Allergen Labeling (FSSAI):\n\nThe following must be declared on labels:\n1. Gluten-containing cereals (wheat, barley, rye)\n2. Crustaceans (shrimp, crab)\n3. Eggs\n4. Fish\n5. Peanuts\n6. Soybeans\n7. Milk (lactose)\n8. Tree nuts (almonds, cashews, walnuts)\n9. Celery\n10. Mustard\n11. Sesame\n12. Sulphur dioxide/sulphites (>10mg/kg)\n13. Lupin\n14. Molluscs\n\nMust appear in INGREDIENTS list in BOLD.',source:'FSS (Packaging & Labeling) Regulation 2011, Annexure'},
-  'cold chain':{text:'Cold Chain Management Requirements:\n\n\u2022 Maintain temperature logs \u2014 refrigerated 0\u20134\u00b0C, frozen \u2264 \u221218\u00b0C\n\u2022 Temperature monitoring devices calibrated quarterly\n\u2022 Vehicle refrigeration units checked before each trip\n\u2022 Loading/unloading time \u2264 30 minutes for perishables\n\u2022 Backup power for cold storage mandatory\n\u2022 HACCP-based cold chain plan required\n\u2022 Deviation records with corrective actions\n\u2022 Staff training on cold chain handling',source:'FSSAI Cold Chain Guidelines 2020'},
-  'audit':{text:'FSSAI Audit Preparation Checklist:\n\n1. Valid FSSAI license displayed prominently\n2. FSMS documentation complete and up-to-date\n3. HACCP plan with all 7 principles documented\n4. Internal audit records (last 12 months)\n5. Corrective action logs for all NCs\n6. Supplier approval records\n7. Training records for all food handlers\n8. Pest control contracts and reports\n9. Calibration certificates for instruments\n10. Product recall plan tested annually',source:'FSSAI Audit Protocol v3.0'},
-  'incident':{text:'Incident Management Process:\n\n1. IMMEDIATE: Contain the incident, isolate affected products\n2. ASSESS: Evaluate severity and scope (minor/major/critical)\n3. NOTIFY: Inform FSSAI within 24 hours for serious incidents\n4. INVESTIGATE: Root cause analysis using 5-Why or Fishbone\n5. CORRECT: Implement CAPA with defined timeline\n6. VERIFY: Confirm effectiveness of corrective actions\n7. DOCUMENT: Complete incident report with evidence\n8. REVIEW: Management review and lessons learned',source:'FSSAI Food Safety Management Regulation'},
-  'label':{text:'Food Label Requirements (FSSAI):\n\n\u2022 Product name / trade name\n\u2022 List of ingredients in descending order\n\u2022 Allergen declaration (bold)\n\u2022 Net quantity\n\u2022 Manufacturing date + expiry / best before\n\u2022 Batch number / lot number\n\u2022 Nutrition information per 100g\n\u2022 FSSAI license number (with logo)\n\u2022 MRP (inclusive of all taxes)\n\u2022 Manufacturer name and address\n\u2022 Country of origin (for imports)\n\u2022 Storage instructions',source:'FSS (Packaging & Labeling) Regulation 2011'},
-  'water':{text:'Water Quality Testing Requirements:\n\n\u2022 Test frequency: Monthly for microbial, Quarterly for chemical\n\u2022 Parameters: pH, TDS, hardness, chloride, fluoride, iron, manganese\n\u2022 Microbial: TC, FC, E.coli, Salmonella, Vibrio\n\u2022 Heavy metals: Lead, arsenic, mercury, cadmium\n\u2022 Testing must be done at NABL-accredited lab\n\u2022 Records maintained for 2 years\n\u2022 Non-compliance triggers immediate corrective action\n\u2022 Water treatment system validation required',source:'FSSAI Water Quality Standards'}
-};
+let chatMessages = [];
+let isStreaming = false;
 
 const HISTORY_KEY='fsr_chat_history';
 let chatHistory=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
@@ -240,26 +230,62 @@ function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function getTime(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
 
 function toggleSend(){
-  document.getElementById('sendBtn').disabled=!document.getElementById('chatInput').value.trim();
+  document.getElementById('sendBtn').disabled=!document.getElementById('chatInput').value.trim()||isStreaming;
 }
 
 function sendMsg(){
   const inp=document.getElementById('chatInput');
   const q=inp.value.trim();
-  if(!q)return;
+  if(!q||isStreaming)return;
   document.getElementById('chatEmpty').style.display='none';
   addMsg('user',q);
+  chatMessages.push({role:'user',content:q});
   inp.value='';
   toggleSend();
   showTyping();
-  const delay=800+Math.random()*1200;
-  setTimeout(()=>{
-    hideTyping();
-    const key=Object.keys(ANSWERS).find(k=>q.toLowerCase().includes(k));
-    const ans=key?ANSWERS[key]:{text:'Based on FSSAI Act 2006 and related regulations, I can guide you on licensing, labeling, HACCP, GMP, ISO 22000, and compliance. Please ask a specific question about any food safety regulation and I will provide detailed guidance with relevant sources.\n\nThis is advisory guidance \u2014 always confirm on the official FSSAI/FoSCoS portal.',source:null};
-    addMsg('bot',ans.text,ans.source);
-    saveToHistory(q,ans.text);
-  },delay);
+  isStreaming=true;
+  toggleSend();
+
+  let botText='';
+  const botEl=createBotMsgPlaceholder();
+
+  API.assistant.chat(chatMessages,
+    (chunk)=>{
+      if(botText==='')hideTyping();
+      botText+=chunk;
+      updateBotMsg(botEl,botText);
+    },
+    ()=>{
+      isStreaming=false;
+      toggleSend();
+      chatMessages.push({role:'assistant',content:botText});
+      saveToHistory(q,botText);
+    },
+    (err)=>{
+      isStreaming=false;
+      toggleSend();
+      hideTyping();
+      if(!botText){
+        updateBotMsg(botEl,'Sorry, I encountered an error: '+err+'. Please try again.');
+      }
+    }
+  );
+}
+
+function createBotMsgPlaceholder(){
+  const box=document.getElementById('chatMessages');
+  const g=document.createElement('div');
+  g.className='msg-group bot';
+  g.innerHTML=`<div class="msg-avatar bot-av">&#129302;</div><div class="msg-content"><div class="msg-bubble"></div><div class="msg-meta"><div class="msg-time">${getTime()}</div></div></div>`;
+  box.appendChild(g);
+  box.scrollTop=box.scrollHeight;
+  return g;
+}
+
+function updateBotMsg(el,text){
+  el.querySelector('.msg-bubble').innerHTML=esc(text).replace(/\n/g,'<br>');
+  const box=document.getElementById('chatMessages');
+  box.scrollTop=box.scrollHeight;
 }
 
 function addMsg(role,text,source,scroll){
@@ -314,7 +340,11 @@ function loadChat(id){
   if(!chat)return;
   document.getElementById('chatEmpty').style.display='none';
   document.getElementById('chatMessages').innerHTML='';
-  chat.messages.forEach(m=>addMsg(m.role,m.text,null,false));
+  chatMessages=[];
+  chat.messages.forEach(m=>{
+    addMsg(m.role==='user'?'user':'bot',m.text,null,false);
+    chatMessages.push({role:m.role==='user'?'user':'assistant',content:m.text});
+  });
   renderHistory();
 }
 
@@ -325,6 +355,7 @@ function askQ(q){
 }
 
 function newChat(){
+  chatMessages=[];
   document.getElementById('chatMessages').innerHTML=`
     <div class="chat-empty" id="chatEmpty">
       <div class="chat-empty-icon">&#129302;</div>
