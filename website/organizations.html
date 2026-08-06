@@ -444,18 +444,30 @@ function renderMemberTable(members){
   const cnt=document.getElementById('memberCount');
   if(!members||!members.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted-foreground)">No team members yet. Invite someone to get started.</div>';cnt.textContent='0 members';return;}
   cnt.textContent=members.length+' member'+(members.length!==1?'s':'');
-  el.innerHTML=`<table><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr>${members.map(m=>{
+  el.innerHTML=`<table><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>${members.map(m=>{
     const roleCls=m.role==='admin'?'blue':m.role==='food_safety_officer'?'green':m.role==='auditor'?'yellow':'gray';
     const stCls=m.status==='active'?'green':'red';
     const joined=m.created_at?new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const user=JSON.parse(localStorage.getItem('fsr_user')||'{}');
+    const isAdmin=user.role==='admin'||user.role==='super_admin';
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${(m.name||'?').charAt(0)}</div><span style="font-weight:500">${esc(m.name||'')}</span></div></td>
       <td>${esc(m.email)}</td>
       <td><span class="badge badge-${roleCls}">${esc(m.role||'viewer')}</span></td>
       <td><span class="badge badge-${stCls}">${esc(m.status||'active')}</span></td>
       <td>${joined}</td>
+      <td>${isAdmin?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;color:var(--danger);border-color:var(--danger)" onclick="removeMember(${m.id},'${esc(m.name)}')">Remove</button>`:''}</td>
     </tr>`;
   }).join('')}</table>`;
+}
+
+async function removeMember(id,name){
+  if(!confirm('Remove '+name+' from your organization?'))return;
+  try{
+    await API.invite.remove(id);
+    toast(name+' has been removed');
+    loadMembers();
+  }catch(e){toast('Error: '+e.message);}
 }
 
 async function sendInvite(){
