@@ -3,16 +3,8 @@ const { getDB, runSQL } = require('../db/database');
 const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 
-function queryAll(sql, params = []) {
+function queryAll(sql) {
   const db = getDB();
-  if (params.length) {
-    const stmt = db.prepare(sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) rows.push(stmt.getAsObject());
-    stmt.free();
-    return rows;
-  }
   const result = db.exec(sql);
   if (!result.length) return [];
   const cols = result[0].columns;
@@ -23,12 +15,12 @@ function queryAll(sql, params = []) {
   });
 }
 
-function queryOne(sql, params = []) {
-  const rows = queryAll(sql, params);
+function queryOne(sql) {
+  const rows = queryAll(sql);
   return rows.length ? rows[0] : null;
 }
 
-// Get conversations list (admin sees all, members see only admin)
+// Get conversations list (MUST be before /:userId to avoid route conflict)
 router.get('/conversations', authenticate, (req, res) => {
   try {
     const userId = req.user.id;
