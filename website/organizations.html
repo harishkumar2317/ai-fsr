@@ -114,10 +114,6 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       </button>
       <div class="collapsible-content" id="collapse-members">
         <div style="padding-top:12px">
-          <div class="table-head">
-            <div></div>
-            <button class="btn btn-primary" onclick="openInviteModal()">+ Invite Member</button>
-          </div>
           <div id="memberTable">Loading...</div>
         </div>
       </div>
@@ -265,6 +261,18 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
           <input type="email" class="form-input" id="inviteEmail" placeholder="colleague@company.in">
         </div>
         <div class="form-group">
+          <label class="form-label">Select Organization</label>
+          <select class="form-input" id="inviteOrg" onchange="onInviteOrgChange()">
+            <option value="">Select organization...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Select Plant / Unit</label>
+          <select class="form-input" id="invitePlant">
+            <option value="">Select plant/unit...</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
           <label class="form-label">Assign role</label>
           <select class="form-input" id="inviteRole" onchange="toggleCustomRole()">
             <option value="viewer">Viewer — Read only</option>
@@ -303,6 +311,56 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   </div>
 </div>
 
+<!-- Edit Role Modal -->
+<div class="modal-overlay" id="editRoleModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h2>Edit Role</h2>
+      <button class="modal-close" onclick="closeEditRoleModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin:0 auto 8px" id="editRoleAvatar">?</div>
+        <div style="font-size:14px;font-weight:600" id="editRoleName">Member</div>
+        <div style="font-size:12px;color:var(--muted-foreground)" id="editRoleEmail">email</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Role</label>
+        <select class="form-input" id="editRoleSelect">
+          <option value="viewer">Viewer — Read only</option>
+          <option value="admin">Admin — Full access</option>
+          <optgroup label="Food Safety">
+            <option value="food_safety_officer">Food Safety Officer</option>
+            <option value="qa_manager">Quality Assurance Manager</option>
+            <option value="quality_inspector">Quality Inspector</option>
+            <option value="lab_technician">Lab Technician</option>
+            <option value="hygiene_supervisor">Hygiene Supervisor</option>
+          </optgroup>
+          <optgroup label="Operations">
+            <option value="auditor">Auditor</option>
+            <option value="production_manager">Production Manager</option>
+            <option value="plant_manager">Plant Manager</option>
+            <option value="warehouse_manager">Warehouse Manager</option>
+            <option value="supply_chain">Supply Chain Manager</option>
+          </optgroup>
+          <optgroup label="Compliance">
+            <option value="regulatory_affairs">Regulatory Affairs Specialist</option>
+            <option value="capa_manager">CAPA Manager</option>
+            <option value="document_controller">Document Controller</option>
+            <option value="internal_auditor">Internal Auditor</option>
+          </optgroup>
+          <option value="custom">+ Add Custom Role</option>
+        </select>
+        <input type="text" class="form-input" id="editCustomRole" placeholder="Enter custom role name" style="display:none;margin-top:8px">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeEditRoleModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditRole()">Save Role</button>
+    </div>
+  </div>
+</div>
+
 <script src="api.js"></script>`n<script src="app.js"></script>
 <script>
 renderShell(1,'Organizations','Manage your organization and plant units','Organizations');
@@ -310,11 +368,14 @@ renderShell(1,'Organizations','Manage your organization and plant units','Organi
 let organizations=[];
 let editingId=null;
 let deletingId=null;
+let allOrgs=[];
+let editingRoleId=null;
 
 async function loadOrgs(){
   try{
     const data=await API.organizations.list();
     if(data&&data.organizations){
+      allOrgs=data.organizations;
       organizations=data.organizations.map(o=>({
         id:o.id,name:o.name,plant:o.plant,code:o.code||'',address:o.address||'',
         license:o.fssai_license,category:o.fssai_category||'State',
@@ -485,29 +546,51 @@ function openInviteModal(){
   document.getElementById('inviteEmail').value='';
   document.getElementById('inviteRole').value='viewer';
   document.getElementById('inviteList').innerHTML='<div style="font-size:12px;color:var(--muted-foreground);text-align:center;padding:10px">Loading members...</div>';
+  populateInviteOrgDropdown();
   document.getElementById('inviteModal').classList.add('open');
   loadMembers();
 }
 
 function closeInviteModal(){document.getElementById('inviteModal').classList.remove('open');}
 
+function populateInviteOrgDropdown(){
+  const sel=document.getElementById('inviteOrg');
+  const uniqueNames=[...new Set(allOrgs.map(o=>o.name))];
+  sel.innerHTML='<option value="">Select organization...</option>'+
+    uniqueNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  document.getElementById('invitePlant').innerHTML='<option value="">Select plant/unit...</option>';
+}
+
+function onInviteOrgChange(){
+  const orgName=document.getElementById('inviteOrg').value;
+  const plantSel=document.getElementById('invitePlant');
+  if(!orgName){plantSel.innerHTML='<option value="">Select plant/unit...</option>';return;}
+  const plants=allOrgs.filter(o=>o.name===orgName);
+  plantSel.innerHTML='<option value="">Select plant/unit...</option>'+
+    plants.map(p=>`<option value="${p.id}">${esc(p.plant)}</option>`).join('');
+}
+
 async function loadMembers(){
   try{
-    const data = await API.invite.list();
-    const el = document.getElementById('inviteList');
-    if(!data||!data.members||!data.members.length){el.innerHTML='<div style="font-size:12px;color:var(--muted-foreground);text-align:center;padding:10px">No team members yet</div>';return;}
+    const data=await API.invite.list();
+    const el=document.getElementById('inviteList');
+    if(!data||!data.members||!data.members.length){
+      el.innerHTML='<div style="font-size:12px;color:var(--muted-foreground);text-align:center;padding:10px">No team members yet</div>';
+      renderMemberTable(data?.members);
+      return;
+    }
     el.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:8px">Team Members ('+data.members.length+')</div>'+
       data.members.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
         <div style="width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${(m.name||'?').charAt(0)}</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:500">${m.name||m.email}</div><div style="font-size:11px;color:var(--muted-foreground)">${m.email}</div></div>
-        <span class="badge badge-${m.role==='admin'?'blue':m.role==='auditor'?'green':'yellow'}" style="font-size:10px">${m.role}</span>
+        <span class="badge badge-${m.role==='admin'?'blue':m.role==='auditor'?'green':'yellow'}" style="font-size:10px">${formatRole(m.role)}</span>
       </div>`).join('');
     renderMemberTable(data.members);
   }catch(e){}
 }
 
 function formatRole(r){
-  if(!r)return'viewer';
+  if(!r)return'Viewer';
   const map={admin:'Admin',super_admin:'Super Admin',viewer:'Viewer',food_safety_officer:'Food Safety Officer',auditor:'Auditor',qa_manager:'QA Manager',quality_inspector:'Quality Inspector',lab_technician:'Lab Technician',hygiene_supervisor:'Hygiene Supervisor',production_manager:'Production Manager',plant_manager:'Plant Manager',warehouse_manager:'Warehouse Manager',supply_chain:'Supply Chain Manager',regulatory_affairs:'Regulatory Affairs',capa_manager:'CAPA Manager',document_controller:'Document Controller',internal_auditor:'Internal Auditor'};
   return map[r]||r.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 }
@@ -517,8 +600,7 @@ function renderMemberTable(members){
   const cnt=document.getElementById('memberCount');
   if(!members||!members.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted-foreground)">No team members yet. Invite someone to get started.</div>';cnt.textContent='0 members';return;}
   cnt.textContent=members.length+' member'+(members.length!==1?'s':'');
-  el.innerHTML=`<table><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>${members.map(m=>{
-    const knownRoles=['admin','super_admin','viewer','food_safety_officer','auditor','qa_manager','quality_inspector','lab_technician','hygiene_supervisor','production_manager','plant_manager','warehouse_manager','supply_chain','regulatory_affairs','capa_manager','document_controller','internal_auditor'];
+  el.innerHTML=`<div style="overflow-x:auto"><table><tr><th>Name</th><th>Email</th><th>Organization</th><th>Unit</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>${members.map(m=>{
     const roleCls=m.role==='admin'?'blue':m.role==='food_safety_officer'||m.role==='qa_manager'||m.role==='quality_inspector'||m.role==='lab_technician'||m.role==='hygiene_supervisor'?'green':m.role==='auditor'||m.role==='internal_auditor'||m.role==='capa_manager'?'yellow':m.role==='production_manager'||m.role==='plant_manager'?'red':'gray';
     const stCls=m.status==='active'?'green':'red';
     const joined=m.created_at?new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
@@ -527,12 +609,17 @@ function renderMemberTable(members){
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${(m.name||'?').charAt(0)}</div><span style="font-weight:500">${esc(m.name||'')}</span></div></td>
       <td>${esc(m.email)}</td>
+      <td>${esc(m.org_name||'—')}</td>
+      <td>${esc(m.org_plant||'—')}</td>
       <td><span class="badge badge-${roleCls}">${esc(formatRole(m.role))}</span></td>
       <td><span class="badge badge-${stCls}">${esc(m.status||'active')}</span></td>
       <td>${joined}</td>
-      <td>${isAdmin?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;color:var(--danger);border-color:var(--danger)" onclick="removeMember(${m.id},'${esc(m.name)}')">Remove</button>`:''}</td>
+      <td><div class="row-actions">
+        ${isAdmin?`<button title="Edit Role" onclick="openEditRoleModal(${m.id},'${esc(m.name)}','${esc(m.email)}','${esc(m.role||'')}')">&#9998;</button>`:''}
+        ${isAdmin?`<button class="del" title="Remove" onclick="removeMember(${m.id},'${esc(m.name)}')">&#10005;</button>`:''}
+      </div></td>
     </tr>`;
-  }).join('')}</table>`;
+  }).join('')}</table></div>`;
 }
 
 async function removeMember(id,name){
@@ -542,6 +629,41 @@ async function removeMember(id,name){
     toast(name+' has been removed');
     loadMembers();
   }catch(e){toast('Error: '+e.message);}
+}
+
+/* ── Edit Role Modal ── */
+function openEditRoleModal(id,name,email,currentRole){
+  editingRoleId=id;
+  document.getElementById('editRoleAvatar').textContent=(name||'?').charAt(0);
+  document.getElementById('editRoleName').textContent=name;
+  document.getElementById('editRoleEmail').textContent=email;
+  document.getElementById('editRoleSelect').value=currentRole;
+  document.getElementById('editCustomRole').style.display='none';
+  document.getElementById('editRoleModal').classList.add('open');
+}
+
+function closeEditRoleModal(){
+  document.getElementById('editRoleModal').classList.remove('open');
+  editingRoleId=null;
+}
+
+document.getElementById('editRoleSelect').addEventListener('change',function(){
+  document.getElementById('editCustomRole').style.display=this.value==='custom'?'block':'none';
+});
+
+async function saveEditRole(){
+  if(!editingRoleId)return;
+  let role=document.getElementById('editRoleSelect').value;
+  if(role==='custom'){
+    role=document.getElementById('editCustomRole').value.trim().toLowerCase().replace(/\s+/g,'_');
+    if(!role){toast('Enter a custom role name');return;}
+  }
+  try{
+    await API.invite.updateRole(editingRoleId,role);
+    toast('Role updated');
+    closeEditRoleModal();
+    loadMembers();
+  }catch(e){toast('Failed to update role');}
 }
 
 function toggleCustomRole(){
@@ -570,12 +692,15 @@ async function sendInvite(){
   }
   if(!email){toast('Enter an email address');return;}
   if(!name){toast('Enter a name');return;}
+  const orgId=document.getElementById('invitePlant').value||undefined;
   try{
-    await API.invite.send(email, role, undefined, name);
+    await API.invite.send(email, role, orgId, name);
     toast('Invitation sent to '+name);
     document.getElementById('inviteName').value='';
     document.getElementById('inviteEmail').value='';
     document.getElementById('inviteRole').value='viewer';
+    document.getElementById('inviteOrg').value='';
+    document.getElementById('invitePlant').innerHTML='<option value="">Select plant/unit...</option>';
     document.getElementById('customRoleInput').value='';
     document.getElementById('customRoleInput').style.display='none';
     loadMembers();

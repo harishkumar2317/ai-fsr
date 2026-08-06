@@ -4,16 +4,8 @@ const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-function queryAll(sql, params = []) {
+function queryAll(sql) {
   const db = getDB();
-  if (params.length) {
-    const stmt = db.prepare(sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) rows.push(stmt.getAsObject());
-    stmt.free();
-    return rows;
-  }
   const result = db.exec(sql);
   if (!result.length) return [];
   const cols = result[0].columns;
@@ -24,10 +16,12 @@ function queryAll(sql, params = []) {
   });
 }
 
-function queryOne(sql, params = []) {
-  const rows = queryAll(sql, params);
+function queryOne(sql) {
+  const rows = queryAll(sql);
   return rows.length ? rows[0] : null;
 }
+
+function esc(s) { return (s || '').replace(/'/g, "''"); }
 
 router.get('/', authenticate, (req, res) => {
   try {
@@ -45,7 +39,7 @@ router.get('/', authenticate, (req, res) => {
 
 router.get('/:id', authenticate, (req, res) => {
   try {
-    const org = queryOne("SELECT * FROM organizations WHERE id = ?", [req.params.id]);
+    const org = queryOne(`SELECT * FROM organizations WHERE id = ${parseInt(req.params.id)}`);
     if (!org) return res.status(404).json({ error: 'Organization not found.' });
     res.json({ organization: org });
   } catch (err) {
@@ -63,8 +57,7 @@ router.post('/', authenticate, authorize('super_admin', 'admin'), (req, res) => 
 
     runSQL(
       `INSERT INTO organizations (name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, plant, code||'', address||'', fssai_license, fssai_category||'State', contact_person||'', designation||'', email||'', phone||'', status||'Active', compliance_score||0]
+       VALUES ('${esc(name)}', '${esc(plant)}', '${esc(code||'')}', '${esc(address||'')}', '${esc(fssai_license)}', '${esc(fssai_category||'State')}', '${esc(contact_person||'')}', '${esc(designation||'')}', '${esc(email||'')}', '${esc(phone||'')}', '${esc(status||'Active')}', ${parseInt(compliance_score)||0})`
     );
 
     const org = queryOne("SELECT * FROM organizations ORDER BY id DESC LIMIT 1");
@@ -77,14 +70,14 @@ router.post('/', authenticate, authorize('super_admin', 'admin'), (req, res) => 
 
 router.put('/:id', authenticate, authorize('super_admin', 'admin'), (req, res) => {
   try {
-    const { name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score } = req.body;
+    const { name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score } = req.params.id ? req.body : {};
+    const id = parseInt(req.params.id);
 
     runSQL(
-      `UPDATE organizations SET name=?, plant=?, code=?, address=?, fssai_license=?, fssai_category=?, contact_person=?, designation=?, email=?, phone=?, status=?, compliance_score=?, updated_at=datetime('now') WHERE id=?`,
-      [name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score, req.params.id]
+      `UPDATE organizations SET name='${esc(name)}', plant='${esc(plant)}', code='${esc(code||'')}', address='${esc(address||'')}', fssai_license='${esc(fssai_license)}', fssai_category='${esc(fssai_category||'State')}', contact_person='${esc(contact_person||'')}', designation='${esc(designation||'')}', email='${esc(email||'')}', phone='${esc(phone||'')}', status='${esc(status||'Active')}', compliance_score=${parseInt(compliance_score)||0}, updated_at=datetime('now') WHERE id=${id}`
     );
 
-    const org = queryOne("SELECT * FROM organizations WHERE id = ?", [req.params.id]);
+    const org = queryOne(`SELECT * FROM organizations WHERE id = ${id}`);
     res.json({ organization: org, message: 'Organization updated.' });
   } catch (err) {
     console.error('Update organization error:', err);
@@ -94,7 +87,7 @@ router.put('/:id', authenticate, authorize('super_admin', 'admin'), (req, res) =
 
 router.delete('/:id', authenticate, authorize('super_admin'), (req, res) => {
   try {
-    runSQL("DELETE FROM organizations WHERE id = ?", [req.params.id]);
+    runSQL(`DELETE FROM organizations WHERE id = ${parseInt(req.params.id)}`);
     res.json({ message: 'Organization deleted.' });
   } catch (err) {
     console.error('Delete organization error:', err);

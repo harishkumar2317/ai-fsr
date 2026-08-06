@@ -92,7 +92,8 @@ const API = {
   invite: {
     list() { return API.get('/invite'); },
     send(email, role, organization_id, name) { return API.post('/invite', { email, role, organization_id, name }); },
-    remove(id) { return API.del('/invite/' + id); }
+    remove(id) { return API.del('/invite/' + id); },
+    updateRole(id, role) { return API.put('/invite/' + id + '/role', { role }); }
   },
 
   messages: {
