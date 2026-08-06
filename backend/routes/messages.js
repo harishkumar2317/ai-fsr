@@ -1,29 +1,9 @@
 const express = require('express');
-const { getDB, runSQL } = require('../db/database');
+const { queryAll, queryOne, runSQL } = require('../db/database');
 const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 
-function queryAll(sql) {
-  const db = getDB();
-  const result = db.exec(sql);
-  if (!result.length) return [];
-  const cols = result[0].columns;
-  return result[0].values.map(row => {
-    const obj = {};
-    cols.forEach((c, i) => obj[c] = row[i]);
-    return obj;
-  });
-}
-
-function queryOne(sql) {
-  const rows = queryAll(sql);
-  return rows.length ? rows[0] : null;
-}
-
-function esc(s) { return (s || '').replace(/'/g, "''"); }
-
-// Get conversations list (MUST be before /:userId to avoid route conflict)
-router.get('/conversations', authenticate, (req, res) => {
+router.get('/conversations', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const orgId = req.user.organization_id;
@@ -31,47 +11,53 @@ router.get('/conversations', authenticate, (req, res) => {
     let conversations = [];
 
     if (isAdmin) {
-      const orgName = queryOne(`SELECT name FROM organizations WHERE id = ${orgId}`);
+      const orgName = await queryOne(`SELECT name FROM organizations WHERE id = $1`, [orgId]);
       let members = [];
       if (orgName) {
-        const allOrgIds = queryAll(`SELECT id FROM organizations WHERE name = '${esc(orgName.name)}'`);
+        const allOrgIds = await queryAll(`SELECT id FROM organizations WHERE name = $1`, [orgName.name]);
         const orgIds = allOrgIds.map(o => o.id);
         if (orgIds.length) {
-          members = queryAll(
+          members = await queryAll(
             `SELECT u.id, u.name, u.email, u.role FROM users u
-             WHERE u.organization_id IN (${orgIds.join(',')}) AND u.id != ${userId} AND u.status = 'active'`
+             WHERE u.organization_id = ANY($1) AND u.id != $2 AND u.status = 'active'`,
+            [orgIds, userId]
           );
         }
       }
-      conversations = members.map(m => {
-        const last = queryOne(
-          `SELECT message, created_at FROM messages WHERE (sender_id = ${m.id} AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = ${m.id}) ORDER BY created_at DESC LIMIT 1`
+      for (const m of members) {
+        const last = await queryOne(
+          `SELECT message, created_at FROM messages WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1) ORDER BY created_at DESC LIMIT 1`,
+          [m.id, userId]
         );
-        const unread = queryOne(
-          `SELECT COUNT(*) as c FROM messages WHERE sender_id = ${m.id} AND receiver_id = ${userId} AND read = 0`
+        const unread = await queryOne(
+          `SELECT COUNT(*)::int as c FROM messages WHERE sender_id = $1 AND receiver_id = $2 AND read = 0`,
+          [m.id, userId]
         );
-        return { ...m, last_message: last?.message || null, last_time: last?.created_at || null, unread: unread?.c || 0 };
-      });
+        conversations.push({ ...m, last_message: last?.message || null, last_time: last?.created_at || null, unread: unread?.c || 0 });
+      }
       conversations.sort((a, b) => (b.last_time || '').localeCompare(a.last_time || ''));
     } else {
-      const orgName = queryOne(`SELECT name FROM organizations WHERE id = ${orgId}`);
+      const orgName = await queryOne(`SELECT name FROM organizations WHERE id = $1`, [orgId]);
       let admin = null;
       if (orgName) {
-        const allOrgIds = queryAll(`SELECT id FROM organizations WHERE name = '${esc(orgName.name)}'`);
+        const allOrgIds = await queryAll(`SELECT id FROM organizations WHERE name = $1`, [orgName.name]);
         const orgIds = allOrgIds.map(o => o.id);
         if (orgIds.length) {
-          admin = queryOne(
+          admin = await queryOne(
             `SELECT u.id, u.name, u.email, u.role FROM users u
-             WHERE u.organization_id IN (${orgIds.join(',')}) AND u.role IN ('admin','super_admin') AND u.id != ${userId} AND u.status = 'active' LIMIT 1`
+             WHERE u.organization_id = ANY($1) AND u.role IN ('admin','super_admin') AND u.id != $2 AND u.status = 'active' LIMIT 1`,
+            [orgIds, userId]
           );
         }
       }
       if (admin) {
-        const last = queryOne(
-          `SELECT message, created_at FROM messages WHERE (sender_id = ${admin.id} AND receiver_id = ${userId}) OR (sender_id = ${userId} AND receiver_id = ${admin.id}) ORDER BY created_at DESC LIMIT 1`
+        const last = await queryOne(
+          `SELECT message, created_at FROM messages WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1) ORDER BY created_at DESC LIMIT 1`,
+          [admin.id, userId]
         );
-        const unread = queryOne(
-          `SELECT COUNT(*) as c FROM messages WHERE sender_id = ${admin.id} AND receiver_id = ${userId} AND read = 0`
+        const unread = await queryOne(
+          `SELECT COUNT(*)::int as c FROM messages WHERE sender_id = $1 AND receiver_id = $2 AND read = 0`,
+          [admin.id, userId]
         );
         conversations = [{ ...admin, last_message: last?.message || null, last_time: last?.created_at || null, unread: unread?.c || 0 }];
       }
@@ -83,15 +69,15 @@ router.get('/conversations', authenticate, (req, res) => {
   }
 });
 
-// Get messages with a specific user
-router.get('/:userId', authenticate, (req, res) => {
+router.get('/:userId', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const otherId = parseInt(req.params.userId);
-    const messages = queryAll(
-      `SELECT * FROM messages WHERE (sender_id = ${userId} AND receiver_id = ${otherId}) OR (sender_id = ${otherId} AND receiver_id = ${userId}) ORDER BY created_at ASC`
+    const messages = await queryAll(
+      `SELECT * FROM messages WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1) ORDER BY created_at ASC`,
+      [userId, otherId]
     );
-    runSQL(`UPDATE messages SET read = 1 WHERE sender_id = ${otherId} AND receiver_id = ${userId}`);
+    await runSQL(`UPDATE messages SET read = 1 WHERE sender_id = $1 AND receiver_id = $2`, [otherId, userId]);
     res.json({ messages });
   } catch (err) {
     console.error('Get messages error:', err);
@@ -99,15 +85,13 @@ router.get('/:userId', authenticate, (req, res) => {
   }
 });
 
-// Send a message
-router.post('/', authenticate, (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     const { receiver_id, message } = req.body;
-    if (!receiver_id || !message) {
-      return res.status(400).json({ error: 'receiver_id and message are required.' });
-    }
-    runSQL(
-      `INSERT INTO messages (sender_id, receiver_id, message) VALUES (${req.user.id}, ${receiver_id}, '${message.replace(/'/g, "''")}')`
+    if (!receiver_id || !message) return res.status(400).json({ error: 'receiver_id and message are required.' });
+    await runSQL(
+      `INSERT INTO messages (sender_id, receiver_id, message) VALUES ($1, $2, $3)`,
+      [req.user.id, receiver_id, message]
     );
     res.status(201).json({ message: 'Message sent.' });
   } catch (err) {

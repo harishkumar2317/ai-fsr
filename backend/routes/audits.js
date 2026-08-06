@@ -1,49 +1,32 @@
 const express = require('express');
-const { getDB, runSQL } = require('../db/database');
+const { queryAll, queryOne, runSQL } = require('../db/database');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
-function queryAll(sql, params = []) {
-  const db = getDB();
-  if (params.length) {
-    const stmt = db.prepare(sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) rows.push(stmt.getAsObject());
-    stmt.free();
-    return rows;
-  }
-  const result = db.exec(sql);
-  if (!result.length) return [];
-  const cols = result[0].columns;
-  return result[0].values.map(row => {
-    const obj = {};
-    cols.forEach((c, i) => obj[c] = row[i]);
-    return obj;
-  });
-}
-
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     let sql = `SELECT a.*, o.name as org_name FROM audits a
                LEFT JOIN organizations o ON a.organization_id = o.id ORDER BY a.created_at DESC`;
+    let params = [];
     if (req.user.role !== 'super_admin' && req.user.organization_id) {
       sql = `SELECT a.*, o.name as org_name FROM audits a
              LEFT JOIN organizations o ON a.organization_id = o.id
-             WHERE a.organization_id = ${req.user.organization_id} ORDER BY a.created_at DESC`;
+             WHERE a.organization_id = $1 ORDER BY a.created_at DESC`;
+      params = [req.user.organization_id];
     }
-    res.json({ audits: queryAll(sql) });
+    const audits = await queryAll(sql, params);
+    res.json({ audits });
   } catch (err) {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
-router.post('/', authenticate, (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     const { audit_id, type, organization_id, plant, auditor, date, score, status, findings } = req.body;
-    runSQL(
-      "INSERT INTO audits (audit_id, type, organization_id, plant, auditor, date, score, status, findings) VALUES (?,?,?,?,?,?,?,?,?)",
+    await runSQL(
+      "INSERT INTO audits (audit_id, type, organization_id, plant, auditor, date, score, status, findings) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
       [audit_id, type, organization_id, plant||'', auditor||'', date||'', score||null, status||'Scheduled', findings||'']
     );
     res.status(201).json({ message: 'Audit created.' });
@@ -52,11 +35,11 @@ router.post('/', authenticate, (req, res) => {
   }
 });
 
-router.put('/:id', authenticate, (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   try {
     const { audit_id, type, organization_id, plant, auditor, date, score, status, findings } = req.body;
-    runSQL(
-      "UPDATE audits SET audit_id=?, type=?, organization_id=?, plant=?, auditor=?, date=?, score=?, status=?, findings=? WHERE id=?",
+    await runSQL(
+      "UPDATE audits SET audit_id=$1, type=$2, organization_id=$3, plant=$4, auditor=$5, date=$6, score=$7, status=$8, findings=$9 WHERE id=$10",
       [audit_id, type, organization_id, plant, auditor, date, score, status, findings, req.params.id]
     );
     res.json({ message: 'Audit updated.' });
@@ -65,9 +48,9 @@ router.put('/:id', authenticate, (req, res) => {
   }
 });
 
-router.delete('/:id', authenticate, (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
-    runSQL("DELETE FROM audits WHERE id = ?", [req.params.id]);
+    await runSQL("DELETE FROM audits WHERE id = $1", [req.params.id]);
     res.json({ message: 'Audit deleted.' });
   } catch (err) {
     res.status(500).json({ error: 'Internal server error.' });

@@ -10,11 +10,9 @@ const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
 app.use(cors({
-  origin: isProd
-    ? true
-    : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://127.0.0.1:3000', 'file://'],
+  origin: isProd ? true : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://127.0.0.1:3000', 'file://'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -32,18 +30,10 @@ app.use((req, res, next) => {
   next();
 });
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  message: { error: 'Too many requests. Please try again later.' }
-});
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { error: 'Too many requests. Please try again later.' } });
 app.use('/api/', limiter);
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,
-  message: { error: 'Too many login attempts. Please try again later.' }
-});
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, message: { error: 'Too many login attempts. Please try again later.' } });
 app.use('/api/auth/login', authLimiter);
 
 app.use(express.static(path.join(__dirname, '..', 'website')));
@@ -59,36 +49,22 @@ app.use('/api/invite', require('./routes/invite'));
 app.use('/api/assistant', require('./routes/assistant'));
 app.use('/api/messages', require('./routes/messages'));
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
-});
+app.get('/api/health', (req, res) => { res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '2.0.0' }); });
 
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '..', 'website', 'index.html'));
-  }
+  if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, '..', 'website', 'index.html'));
 });
 
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error.' });
-});
+app.use((err, req, res, next) => { console.error('Unhandled error:', err); res.status(500).json({ error: 'Internal server error.' }); });
 
 async function start() {
   try {
     await initDB();
-    console.log('Database initialized.');
-
+    console.log('PostgreSQL initialized.');
     const HOST = process.env.PORT ? '0.0.0.0' : 'localhost';
     app.listen(PORT, HOST, () => {
       console.log(`AI-FSR Backend running on http://${HOST}:${PORT}`);
-      console.log(`API: http://${HOST}:${PORT}/api/health`);
-      console.log(`Frontend: http://${HOST}:${PORT}/`);
     });
-
-    const { saveDB } = require('./db/database');
-    process.on('SIGTERM', () => { saveDB(); process.exit(0); });
-    process.on('SIGINT', () => { saveDB(); process.exit(0); });
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);

@@ -1,35 +1,18 @@
 const express = require('express');
-const { getDB, runSQL } = require('../db/database');
+const { queryAll, queryOne, runSQL } = require('../db/database');
 const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-function queryAll(sql) {
-  const db = getDB();
-  const result = db.exec(sql);
-  if (!result.length) return [];
-  const cols = result[0].columns;
-  return result[0].values.map(row => {
-    const obj = {};
-    cols.forEach((c, i) => obj[c] = row[i]);
-    return obj;
-  });
-}
-
-function queryOne(sql) {
-  const rows = queryAll(sql);
-  return rows.length ? rows[0] : null;
-}
-
-function esc(s) { return (s || '').replace(/'/g, "''"); }
-
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     let sql = "SELECT * FROM organizations ORDER BY created_at DESC";
+    let params = [];
     if (req.user.role !== 'super_admin' && req.user.role !== 'admin' && req.user.organization_id) {
-      sql = `SELECT * FROM organizations WHERE id = ${req.user.organization_id}`;
+      sql = `SELECT * FROM organizations WHERE id = $1`;
+      params = [req.user.organization_id];
     }
-    const orgs = queryAll(sql);
+    const orgs = await queryAll(sql, params);
     res.json({ organizations: orgs, total: orgs.length });
   } catch (err) {
     console.error('Get organizations error:', err);
@@ -37,9 +20,9 @@ router.get('/', authenticate, (req, res) => {
   }
 });
 
-router.get('/:id', authenticate, (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   try {
-    const org = queryOne(`SELECT * FROM organizations WHERE id = ${parseInt(req.params.id)}`);
+    const org = await queryOne(`SELECT * FROM organizations WHERE id = $1`, [parseInt(req.params.id)]);
     if (!org) return res.status(404).json({ error: 'Organization not found.' });
     res.json({ organization: org });
   } catch (err) {
@@ -48,22 +31,22 @@ router.get('/:id', authenticate, (req, res) => {
   }
 });
 
-router.post('/', authenticate, authorize('super_admin', 'admin'), (req, res) => {
+router.post('/', authenticate, authorize('super_admin', 'admin'), async (req, res) => {
   try {
     const { name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score } = req.body;
-    if (!name || !plant || !fssai_license) {
-      return res.status(400).json({ error: 'Name, plant, and FSSAI license are required.' });
-    }
+    if (!name || !plant || !fssai_license) return res.status(400).json({ error: 'Name, plant, and FSSAI license are required.' });
 
-    runSQL(
+    const r = await runSQL(
       `INSERT INTO organizations (name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score)
-       VALUES ('${esc(name)}', '${esc(plant)}', '${esc(code||'')}', '${esc(address||'')}', '${esc(fssai_license)}', '${esc(fssai_category||'State')}', '${esc(contact_person||'')}', '${esc(designation||'')}', '${esc(email||'')}', '${esc(phone||'')}', '${esc(status||'Active')}', ${parseInt(compliance_score)||0})`
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [name, plant, code||'', address||'', fssai_license, fssai_category||'State', contact_person||'', designation||'', email||'', phone||'', status||'Active', parseInt(compliance_score)||0]
     );
+    const org = r.rows[0];
 
-    const org = queryOne("SELECT * FROM organizations ORDER BY id DESC LIMIT 1");
     if (org && !req.user.organization_id) {
-      runSQL(`UPDATE users SET organization_id = ${org.id} WHERE id = ${req.user.id}`);
+      await runSQL(`UPDATE users SET organization_id = $1 WHERE id = $2`, [org.id, req.user.id]);
     }
+
     res.status(201).json({ organization: org, message: 'Organization created.' });
   } catch (err) {
     console.error('Create organization error:', err);
@@ -71,26 +54,25 @@ router.post('/', authenticate, authorize('super_admin', 'admin'), (req, res) => 
   }
 });
 
-router.put('/:id', authenticate, authorize('super_admin', 'admin'), (req, res) => {
+router.put('/:id', authenticate, authorize('super_admin', 'admin'), async (req, res) => {
   try {
-    const { name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score } = req.params.id ? req.body : {};
+    const { name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, compliance_score } = req.body;
     const id = parseInt(req.params.id);
 
-    runSQL(
-      `UPDATE organizations SET name='${esc(name)}', plant='${esc(plant)}', code='${esc(code||'')}', address='${esc(address||'')}', fssai_license='${esc(fssai_license)}', fssai_category='${esc(fssai_category||'State')}', contact_person='${esc(contact_person||'')}', designation='${esc(designation||'')}', email='${esc(email||'')}', phone='${esc(phone||'')}', status='${esc(status||'Active')}', compliance_score=${parseInt(compliance_score)||0}, updated_at=datetime('now') WHERE id=${id}`
+    const r = await runSQL(
+      `UPDATE organizations SET name=$1, plant=$2, code=$3, address=$4, fssai_license=$5, fssai_category=$6, contact_person=$7, designation=$8, email=$9, phone=$10, status=$11, compliance_score=$12, updated_at=NOW() WHERE id=$13 RETURNING *`,
+      [name, plant, code, address, fssai_license, fssai_category, contact_person, designation, email, phone, status, parseInt(compliance_score)||0, id]
     );
-
-    const org = queryOne(`SELECT * FROM organizations WHERE id = ${id}`);
-    res.json({ organization: org, message: 'Organization updated.' });
+    res.json({ organization: r.rows[0], message: 'Organization updated.' });
   } catch (err) {
     console.error('Update organization error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
-router.delete('/:id', authenticate, authorize('super_admin'), (req, res) => {
+router.delete('/:id', authenticate, authorize('super_admin'), async (req, res) => {
   try {
-    runSQL(`DELETE FROM organizations WHERE id = ${parseInt(req.params.id)}`);
+    await runSQL(`DELETE FROM organizations WHERE id = $1`, [parseInt(req.params.id)]);
     res.json({ message: 'Organization deleted.' });
   } catch (err) {
     console.error('Delete organization error:', err);

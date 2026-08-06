@@ -15,6 +15,7 @@
     "express-rate-limit": "^7.1.5",
     "groq-sdk": "^1.5.0",
     "jsonwebtoken": "^9.0.2",
+    "pg": "^8.22.0",
     "sql.js": "^1.9.0"
   }
 }
