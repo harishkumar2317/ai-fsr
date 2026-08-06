@@ -77,10 +77,11 @@ async function start() {
     await initDB();
     console.log('Database initialized.');
 
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`AI-FSR Backend running on http://0.0.0.0:${PORT}`);
-      console.log(`API: http://0.0.0.0:${PORT}/api/health`);
-      console.log(`Frontend: http://0.0.0.0:${PORT}/`);
+    const HOST = process.env.PORT ? '0.0.0.0' : 'localhost';
+    app.listen(PORT, HOST, () => {
+      console.log(`AI-FSR Backend running on http://${HOST}:${PORT}`);
+      console.log(`API: http://${HOST}:${PORT}/api/health`);
+      console.log(`Frontend: http://${HOST}:${PORT}/`);
     });
   } catch (err) {
     console.error('Failed to start server:', err);
