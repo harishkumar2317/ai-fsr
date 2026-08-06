@@ -18,6 +18,7 @@
     "jsonwebtoken": "^9.0.2",
     "dotenv": "^16.3.1",
     "express-rate-limit": "^7.1.5",
-    "groq-sdk": "^0.8.0"
+    "groq-sdk": "^0.8.0",
+    "pg": "^8.13.0"
   }
 }
