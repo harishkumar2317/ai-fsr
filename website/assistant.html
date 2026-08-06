@@ -6,51 +6,81 @@
 <style>
 .chat-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 170px);border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow)}
 
+/* ── Sidebar ── */
 .chat-sidebar{background:var(--muted);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
-.chat-sidebar-head{padding:20px;border-bottom:1px solid var(--border)}
-.chat-sidebar-body{flex:1;overflow-y:auto;padding:14px}
-.chat-sidebar-foot{padding:14px;border-top:1px solid var(--border);text-align:center}
-.chat-sidebar-foot small{display:block;font-size:10px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.chat-sidebar-head{padding:16px;border-bottom:1px solid var(--border)}
+.chat-sidebar-body{flex:1;overflow-y:auto;padding:10px}
+.chat-sidebar-foot{padding:12px;border-top:1px solid var(--border);text-align:center}
+.chat-sidebar-foot small{display:block;font-size:10px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
 .chat-sidebar-foot b{color:var(--primary);font-size:12px}
 
+.new-chat-btn{width:100%;border-radius:10px;padding:10px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+
+.ctx-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Inter',sans-serif;background:var(--card);color:var(--foreground);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b8aaa' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.ctx-select:focus{outline:none;border-color:var(--primary)}
+
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted-foreground);font-weight:700;margin-bottom:8px;margin-top:14px}
+
+/* ── Chat Items ── */
+.chat-item{padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px;transition:.15s;border:1px solid transparent;position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chat-item:hover{background:var(--card);border-color:var(--border)}
+.chat-item.active{background:var(--card);border-color:var(--primary);box-shadow:var(--shadow-sm)}
+.chat-item-left{flex:1;min-width:0}
+.chat-item-title{font-size:13px;font-weight:500;color:var(--foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-item-time{font-size:10px;color:var(--muted-foreground);margin-top:2px}
+.chat-item-pin{font-size:10px;color:var(--primary);margin-left:4px}
+
+/* ── 3-Dot Menu ── */
+.chat-item-menu{width:24px;height:24px;border:none;background:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:14px;flex-shrink:0;opacity:0;transition:.15s}
+.chat-item:hover .chat-item-menu{opacity:1}
+.chat-item-menu:hover{background:var(--secondary);color:var(--foreground)}
+.ctx-menu{position:absolute;right:8px;top:36px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;min-width:160px;padding:4px;display:none}
+.ctx-menu.open{display:block}
+.ctx-menu-item{padding:8px 12px;font-size:12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--foreground);transition:.1s}
+.ctx-menu-item:hover{background:var(--secondary)}
+.ctx-menu-item.danger{color:var(--danger)}
+.ctx-menu-item.danger:hover{background:rgba(239,68,68,.08)}
+.ctx-menu-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* ── Main ── */
 .chat-main{display:flex;flex-direction:column;background:var(--background);position:relative;overflow:hidden}
 
+/* ── Header ── */
 .chat-header{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--card);position:relative;z-index:2;flex-shrink:0}
 .chat-header-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 2px 8px rgba(2,132,199,.25);position:relative}
 .chat-header-avatar::after{content:'';position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid var(--card)}
 .chat-header-info h3{font-size:15px;font-weight:700;margin:0}
 .chat-header-info span{font-size:11px;color:var(--muted-foreground)}
 
-.chat-messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:4px;scroll-behavior:smooth;min-height:0}
+.sidebar-toggle-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--foreground);flex-shrink:0}
 
+/* ── Messages ── */
+.chat-messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:4px;scroll-behavior:smooth;min-height:0}
 .msg-group{display:flex;gap:10px;margin-bottom:16px;max-width:75%;animation:msgIn .25s ease}
 .msg-group.user{align-self:flex-end;flex-direction:row-reverse}
 .msg-group.bot{align-self:flex-start}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
 .msg-avatar{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px}
 .msg-avatar.bot-av{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
 .msg-avatar.user-av{background:var(--secondary);color:var(--primary);font-weight:700;font-size:12px}
-
 .msg-content{display:flex;flex-direction:column;gap:4px}
 .msg-bubble{padding:12px 16px;border-radius:16px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;position:relative;word-break:break-word}
 .msg-group.bot .msg-bubble{background:var(--card);border:1px solid var(--border);border-top-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .msg-group.user .msg-bubble{background:linear-gradient(135deg,var(--primary),#0ea5e9);color:#fff;border-top-right-radius:4px;box-shadow:0 2px 8px rgba(2,132,199,.25)}
-
 .msg-meta{display:flex;align-items:center;gap:8px;padding:0 2px}
 .msg-time{font-size:10px;color:var(--muted-foreground)}
-.msg-group.user .msg-time{text-align:right}
-
 .msg-source{font-size:11px;color:var(--primary);background:rgba(2,132,199,.06);border:1px solid rgba(2,132,199,.12);padding:5px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:.15s;font-weight:500;margin-top:2px}
 .msg-source:hover{background:rgba(2,132,199,.1);border-color:rgba(2,132,199,.25)}
 
+/* ── Typing ── */
 .typing-indicator{display:flex;gap:10px;margin-bottom:16px;align-self:flex-start;max-width:75%;animation:msgIn .25s ease}
-.typing-dots{display:flex;gap:5px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:16px;border-top-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.typing-dots{display:flex;gap:5px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:16px;border-top-left-radius:4px}
 .typing-dot{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:typePulse 1.4s infinite ease-in-out}
 .typing-dot:nth-child(2){animation-delay:.2s}
 .typing-dot:nth-child(3){animation-delay:.4s}
 @keyframes typePulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1.1)}}
 
+/* ── Suggestion Chips ── */
 .suggest-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:620px;flex-shrink:0}
 .suggest-card{padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:.2s;background:var(--card);position:relative;overflow:hidden}
 .suggest-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:.2s}
@@ -61,6 +91,7 @@
 .suggest-card-tag{display:inline-block;font-size:10px;color:var(--primary);background:rgba(2,132,199,.08);padding:2px 8px;border-radius:999px;margin-top:8px;font-weight:500}
 .disclaimer{font-size:11px;color:var(--muted-foreground);text-align:center;padding:4px 0 0;flex-shrink:0}
 
+/* ── Input ── */
 .chat-bottom{padding:12px 24px 16px;background:var(--card);border-top:1px solid var(--border);flex-shrink:0}
 .chat-input-wrap{display:flex;align-items:center;gap:6px;background:var(--background);border:2px solid var(--border);border-radius:14px;padding:5px 8px 5px 16px;transition:.25s}
 .chat-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 4px rgba(2,132,199,.08);background:var(--card)}
@@ -72,30 +103,19 @@
 .chat-send:hover{background:var(--primary-hover);transform:scale(1.05)}
 .chat-send:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
 
+/* ── Empty State ── */
 .chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;width:100%}
 .chat-empty-icon{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;box-shadow:0 8px 24px rgba(2,132,199,.25);animation:emptyFloat 3s ease-in-out infinite;flex-shrink:0}
 @keyframes emptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .chat-empty h3{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .chat-empty p{font-size:13px;color:var(--muted-foreground);text-align:center;max-width:400px;line-height:1.6}
 
-.recent-item{padding:11px 14px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:.15s;border:1px solid transparent}
-.recent-item:hover{background:var(--card);border-color:var(--border)}
-.recent-item.active{background:var(--card);border-color:var(--primary);box-shadow:var(--shadow-sm)}
-.recent-title{font-size:13px;font-weight:500;color:var(--foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.recent-time{font-size:10px;color:var(--muted-foreground);margin-top:3px}
-.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted-foreground);font-weight:700;margin-bottom:10px}
-
-.ctx-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Inter',sans-serif;background:var(--card);color:var(--foreground);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b8aaa' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.ctx-select:focus{outline:none;border-color:var(--primary)}
-
-.sidebar-toggle-btn{display:none;width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;align-items:center;justify-content:center;font-size:16px;color:var(--foreground)}
-
+/* ── Responsive ── */
 @media(max-width:900px){
   .chat-layout{grid-template-columns:1fr;grid-template-rows:1fr}
   .chat-sidebar{display:none;position:fixed;top:0;left:0;bottom:0;width:300px;z-index:200;box-shadow:var(--shadow-md)}
   .chat-sidebar.open{display:flex}
   .suggest-grid{grid-template-columns:1fr}
-  .sidebar-toggle-btn{display:flex}
   .chat-header{padding:12px 16px}
   .chat-messages{padding:16px}
   .chat-bottom{padding:10px 16px 14px}
@@ -114,10 +134,11 @@
     <div class="topbar" id="topbar"></div>
 
     <div class="chat-layout">
+      <!-- Sidebar -->
       <div class="chat-sidebar" id="chatSidebar">
         <div class="chat-sidebar-head">
-          <button class="btn btn-primary" style="width:100%;border-radius:10px;padding:10px" onclick="newChat()">+ New Chat</button>
-          <div style="margin-top:16px">
+          <button class="btn btn-primary new-chat-btn" onclick="newChat()">+ New Chat</button>
+          <div style="margin-top:14px">
             <div class="section-label">Regulation Context</div>
             <select class="ctx-select" id="contextSelect">
               <option>All Regulations</option><option>FSSAI Only</option><option>HACCP</option><option>GMP/GHP</option><option>ISO 22000</option>
@@ -132,6 +153,7 @@
         </div>
       </div>
 
+      <!-- Main -->
       <div class="chat-main">
         <div class="chat-header">
           <button class="sidebar-toggle-btn" onclick="toggleChatSidebar()">&#9776;</button>
@@ -195,35 +217,68 @@
     </div>
   </main>
 </div>
+
+<!-- Rename Modal -->
+<div id="renameModal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:14px;padding:24px;width:360px;max-width:90vw;box-shadow:0 16px 48px rgba(0,0,0,.2)">
+    <h3 style="margin:0 0 16px;font-size:16px">Rename Chat</h3>
+    <input type="text" id="renameInput" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:var(--background);color:var(--foreground);outline:none" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeRenameModal()" style="padding:8px 16px;font-size:12px">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmRename()" style="padding:8px 16px;font-size:12px">Save</button>
+    </div>
+  </div>
+</div>
+
 <script src="api.js"></script>
 <script src="app.js"></script>
 <script>
 renderShell(2,'AI Compliance Assistant','','AI Compliance Assistant');
 
-let chatMessages = [];
-let isStreaming = false;
-
 const HISTORY_KEY='fsr_chat_history';
 let chatHistory=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+let activeChatId=null;
+let chatMessages=[];
+let isStreaming=false;
+let renameTargetId=null;
 
-function init(){
-  renderHistory();
-}
+function init(){renderHistory();}
 
 function renderHistory(){
   const el=document.getElementById('chatHistory');
-  el.innerHTML='<div class="section-label">Recent</div>';
-  if(!chatHistory.length){
-    el.innerHTML+='<div style="font-size:12px;color:var(--muted-foreground);padding:20px;text-align:center">No conversations yet</div>';
-    return;
+  el.innerHTML='';
+  const pinned=chatHistory.filter(c=>c.pinned);
+  const unpinned=chatHistory.filter(c=>!c.pinned);
+  if(pinned.length){
+    el.innerHTML+='<div class="section-label">Pinned</div>';
+    pinned.sort((a,b)=>b.ts-a.ts).forEach(c=>el.appendChild(createChatItem(c)));
   }
-  chatHistory.slice(-10).reverse().forEach((c,i)=>{
-    const d=document.createElement('div');
-    d.className='recent-item'+(i===0?' active':'');
-    d.innerHTML=`<div class="recent-title">${esc(c.title)}</div><div class="recent-time">${c.time}</div>`;
-    d.onclick=()=>loadChat(c.id);
-    el.appendChild(d);
-  });
+  if(unpinned.length){
+    el.innerHTML+='<div class="section-label">Recent</div>';
+    unpinned.sort((a,b)=>b.ts-a.ts).slice(0,20).forEach(c=>el.appendChild(createChatItem(c)));
+  }
+  if(!chatHistory.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--muted-foreground);padding:20px;text-align:center">No conversations yet</div>';
+  }
+}
+
+function createChatItem(c){
+  const d=document.createElement('div');
+  d.className='chat-item'+(c.id===activeChatId?' active':'');
+  d.innerHTML=`
+    <div class="chat-item-left" onclick="loadChat(${c.id})">
+      <div class="chat-item-title">${c.pinned?'<span class="chat-item-pin">&#128204;</span>':''}${esc(c.title)}</div>
+      <div class="chat-item-time">${c.time}</div>
+    </div>
+    <button class="chat-item-menu" onclick="event.stopPropagation();toggleCtxMenu(${c.id})">&#8943;</button>
+    <div class="ctx-menu" id="ctx-${c.id}">
+      <div class="ctx-menu-item" onclick="event.stopPropagation();startRename(${c.id})">&#9998; Rename</div>
+      <div class="ctx-menu-item" onclick="event.stopPropagation();togglePin(${c.id})">${c.pinned?'&#128204; Unpin':'&#128204; Pin chat'}</div>
+      <div class="ctx-menu-item" onclick="event.stopPropagation();shareChat(${c.id})">&#128279; Share</div>
+      <div class="ctx-menu-sep"></div>
+      <div class="ctx-menu-item danger" onclick="event.stopPropagation();deleteChat(${c.id})">&#128465; Delete</div>
+    </div>`;
+  return d;
 }
 
 function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -231,6 +286,99 @@ function getTime(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',
 
 function toggleSend(){
   document.getElementById('sendBtn').disabled=!document.getElementById('chatInput').value.trim()||isStreaming;
+}
+
+function toggleCtxMenu(id){
+  document.querySelectorAll('.ctx-menu').forEach(m=>{
+    if(m.id!=='ctx-'+id)m.classList.remove('open');
+  });
+  document.getElementById('ctx-'+id).classList.toggle('open');
+}
+document.addEventListener('click',()=>document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open')));
+
+function togglePin(id){
+  const c=chatHistory.find(x=>x.id===id);
+  if(c){c.pinned=!c.pinned;save();renderHistory();}
+}
+
+function deleteChat(id){
+  chatHistory=chatHistory.filter(x=>x.id!==id);
+  if(activeChatId===id){activeChatId=null;showEmpty();}
+  save();renderHistory();
+}
+
+function startRename(id){
+  renameTargetId=id;
+  const c=chatHistory.find(x=>x.id===id);
+  document.getElementById('renameInput').value=c?c.title:'';
+  const modal=document.getElementById('renameModal');
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('renameInput').focus(),100);
+}
+function closeRenameModal(){document.getElementById('renameModal').style.display='none';renameTargetId=null;}
+function confirmRename(){
+  const val=document.getElementById('renameInput').value.trim();
+  if(val&&renameTargetId){
+    const c=chatHistory.find(x=>x.id===renameTargetId);
+    if(c){c.title=val;save();renderHistory();}
+  }
+  closeRenameModal();
+}
+
+function shareChat(id){
+  const c=chatHistory.find(x=>x.id===id);
+  if(!c)return;
+  const text=c.messages.map(m=>(m.role==='user'?'You: ':'AI: ')+m.text).join('\n\n');
+  if(navigator.share){navigator.share({title:c.title,text:text});}
+  else{navigator.clipboard.writeText(text);toast('Chat copied to clipboard');}
+}
+
+function newChat(){
+  activeChatId=null;
+  chatMessages=[];
+  showEmpty();
+  renderHistory();
+  document.getElementById('chatInput').value='';
+  toggleSend();
+  closeMobileMenu();
+}
+
+function showEmpty(){
+  document.getElementById('chatMessages').innerHTML=`
+    <div class="chat-empty" id="chatEmpty">
+      <div class="chat-empty-icon">&#129302;</div>
+      <h3>How can I help you today?</h3>
+      <p>Ask me anything about FSSAI regulations, HACCP principles, GMP standards, ISO 22000, allergen labeling, audit preparation, or your compliance status.</p>
+      <div class="suggest-grid">
+        <div class="suggest-card" onclick="askQ('What are FSSAI license renewal requirements?')"><span class="suggest-card-icon">&#128196;</span><div class="suggest-card-text">What are FSSAI license renewal requirements?</div><span class="suggest-card-tag">FSSAI</span></div>
+        <div class="suggest-card" onclick="askQ('Explain HACCP principles for dairy processing')"><span class="suggest-card-icon">&#127856;</span><div class="suggest-card-text">Explain HACCP principles for dairy processing</div><span class="suggest-card-tag">HACCP</span></div>
+        <div class="suggest-card" onclick="askQ('What are GMP requirements for food packaging?')"><span class="suggest-card-icon">&#128230;</span><div class="suggest-card-text">What are GMP requirements for food packaging?</div><span class="suggest-card-tag">GMP</span></div>
+        <div class="suggest-card" onclick="askQ('Show compliance gaps for ISO 22000')"><span class="suggest-card-icon">&#127919;</span><div class="suggest-card-text">Show compliance gaps for ISO 22000</div><span class="suggest-card-tag">ISO 22000</span></div>
+        <div class="suggest-card" onclick="askQ('What allergens need mandatory labeling?')"><span class="suggest-card-icon">&#9888;&#65039;</span><div class="suggest-card-text">What allergens need mandatory labeling?</div><span class="suggest-card-tag">Labeling</span></div>
+        <div class="suggest-card" onclick="askQ('What is the incident management process?')"><span class="suggest-card-icon">&#128680;</span><div class="suggest-card-text">What is the incident management process?</div><span class="suggest-card-tag">Incidents</span></div>
+      </div>
+      <div class="disclaimer">Responses are AI-generated guidance &middot; Not legal advice &middot; Confirm on official FSSAI/FoSCoS portal</div>
+    </div>`;
+}
+
+function loadChat(id){
+  const chat=chatHistory.find(c=>c.id===id);
+  if(!chat)return;
+  activeChatId=id;
+  chatMessages=[];
+  document.getElementById('chatMessages').innerHTML='';
+  chat.messages.forEach(m=>{
+    addMsg(m.role==='user'?'user':'bot',m.text,null,false);
+    chatMessages.push({role:m.role==='user'?'user':'assistant',content:m.text});
+  });
+  renderHistory();
+  closeMobileMenu();
+}
+
+function askQ(q){
+  document.getElementById('chatInput').value=q;
+  toggleSend();
+  sendMsg();
 }
 
 function sendMsg(){
@@ -265,9 +413,7 @@ function sendMsg(){
       isStreaming=false;
       toggleSend();
       hideTyping();
-      if(!botText){
-        updateBotMsg(botEl,'Sorry, I encountered an error: '+err+'. Please try again.');
-      }
+      if(!botText)updateBotMsg(botEl,'Sorry, I encountered an error: '+err+'. Please try again.');
     }
   );
 }
@@ -284,8 +430,7 @@ function createBotMsgPlaceholder(){
 
 function updateBotMsg(el,text){
   el.querySelector('.msg-bubble').innerHTML=esc(text).replace(/\n/g,'<br>');
-  const box=document.getElementById('chatMessages');
-  box.scrollTop=box.scrollHeight;
+  document.getElementById('chatMessages').scrollTop=document.getElementById('chatMessages').scrollHeight;
 }
 
 function addMsg(role,text,source,scroll){
@@ -319,63 +464,33 @@ function hideTyping(){
 }
 
 function saveToHistory(q,a){
-  const title=q.length>35?q.substring(0,35)+'...':q;
+  const title=q.length>40?q.substring(0,40)+'...':q;
   const now=new Date();
   const timeStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+getTime();
-  let last=chatHistory[chatHistory.length-1];
-  if(!last||last.messages.length>20){
-    last={id:Date.now(),title:title,time:timeStr,messages:[]};
-    chatHistory.push(last);
+  if(activeChatId){
+    const c=chatHistory.find(x=>x.id===activeChatId);
+    if(c){
+      c.messages.push({role:'user',text:q});
+      c.messages.push({role:'bot',text:a});
+      c.time=timeStr;
+      c.ts=Date.now();
+      save();renderHistory();
+      return;
+    }
   }
-  last.messages.push({role:'user',text:q});
-  last.messages.push({role:'bot',text:a});
-  last.title=title;
-  last.time=timeStr;
-  localStorage.setItem(HISTORY_KEY,JSON.stringify(chatHistory));
-  renderHistory();
+  const newChat={id:Date.now(),title:title,time:timeStr,ts:Date.now(),pinned:false,messages:[{role:'user',text:q},{role:'bot',text:a}]};
+  chatHistory.push(newChat);
+  activeChatId=newChat.id;
+  save();renderHistory();
 }
 
-function loadChat(id){
-  const chat=chatHistory.find(c=>c.id===id);
-  if(!chat)return;
-  document.getElementById('chatEmpty').style.display='none';
-  document.getElementById('chatMessages').innerHTML='';
-  chatMessages=[];
-  chat.messages.forEach(m=>{
-    addMsg(m.role==='user'?'user':'bot',m.text,null,false);
-    chatMessages.push({role:m.role==='user'?'user':'assistant',content:m.text});
-  });
-  renderHistory();
-}
-
-function askQ(q){
-  document.getElementById('chatInput').value=q;
-  toggleSend();
-  sendMsg();
-}
-
-function newChat(){
-  chatMessages=[];
-  document.getElementById('chatMessages').innerHTML=`
-    <div class="chat-empty" id="chatEmpty">
-      <div class="chat-empty-icon">&#129302;</div>
-      <h3>How can I help you today?</h3>
-      <p>Ask me anything about FSSAI regulations, HACCP principles, GMP standards, ISO 22000, allergen labeling, audit preparation, or your compliance status.</p>
-      <div class="suggest-grid">
-        <div class="suggest-card" onclick="askQ('What are FSSAI license renewal requirements?')"><span class="suggest-card-icon">&#128196;</span><div class="suggest-card-text">What are FSSAI license renewal requirements?</div><span class="suggest-card-tag">FSSAI</span></div>
-        <div class="suggest-card" onclick="askQ('Explain HACCP principles for dairy processing')"><span class="suggest-card-icon">&#127856;</span><div class="suggest-card-text">Explain HACCP principles for dairy processing</div><span class="suggest-card-tag">HACCP</span></div>
-        <div class="suggest-card" onclick="askQ('What are GMP requirements for food packaging?')"><span class="suggest-card-icon">&#128230;</span><div class="suggest-card-text">What are GMP requirements for food packaging?</div><span class="suggest-card-tag">GMP</span></div>
-        <div class="suggest-card" onclick="askQ('Show compliance gaps for ISO 22000')"><span class="suggest-card-icon">&#127919;</span><div class="suggest-card-text">Show compliance gaps for ISO 22000</div><span class="suggest-card-tag">ISO 22000</span></div>
-        <div class="suggest-card" onclick="askQ('What allergens need mandatory labeling?')"><span class="suggest-card-icon">&#9888;&#65039;</span><div class="suggest-card-text">What allergens need mandatory labeling?</div><span class="suggest-card-tag">Labeling</span></div>
-        <div class="suggest-card" onclick="askQ('What is the incident management process?')"><span class="suggest-card-icon">&#128680;</span><div class="suggest-card-text">What is the incident management process?</div><span class="suggest-card-tag">Incidents</span></div>
-      </div>
-      <div class="disclaimer">Responses are AI-generated guidance &middot; Not legal advice &middot; Confirm on official FSSAI/FoSCoS portal</div>
-    </div>`;
-  renderHistory();
-}
+function save(){localStorage.setItem(HISTORY_KEY,JSON.stringify(chatHistory));}
 
 function toggleChatSidebar(){
   document.getElementById('chatSidebar').classList.toggle('open');
+}
+function closeMobileMenu(){
+  document.getElementById('chatSidebar').classList.remove('open');
 }
 
 init();
