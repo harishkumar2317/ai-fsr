@@ -166,7 +166,9 @@ select.cl-form-input{cursor:pointer;appearance:none;background-image:url("data:i
         </div>
         <div class="cl-form-group">
           <label class="cl-form-label">Assignee</label>
-          <input type="text" class="cl-form-input" id="clAssignee" placeholder="e.g., Ravi Kumar">
+          <select class="cl-form-input" id="clAssignee">
+            <option value="">Select Team Member</option>
+           </select>
         </div>
         <div class="cl-form-group">
           <label class="cl-form-label">Regulation</label>
@@ -235,6 +237,27 @@ async function loadStats(){
     document.getElementById('statNonCompliant').textContent=s.non_compliant||0;
     document.getElementById('statPending').textContent=s.pending||0;
   }catch(e){}
+}
+
+async function loadMembers() {
+    try {
+        const data = await API.invite.list();
+        const dropdown = document.getElementById('clAssignee');
+
+        dropdown.innerHTML = '<option value="">Select Team Member</option>';
+
+        if (!data || !data.members) return;
+
+        data.members.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.name || member.email;
+            option.textContent = member.name || member.email;
+            dropdown.appendChild(option);
+        });
+
+    } catch (e) {
+        console.error('Failed to load members:', e);
+    }
 }
 
 async function loadChecklists(){
@@ -361,6 +384,7 @@ async function deleteItem(id){
   }catch(e){toast('Error: '+e.message);}
 }
 
+loadMembers();
 loadChecklists();
 </script>
 </body>
