@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-FSR Technical Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary: #0284c7;
+    --primary-dark: #0369a1;
+    --primary-light: #e0f2fe;
+    --navy: #0d1b2e;
+    --navy-light: #1e3a5f;
+    --accent: #06b6d4;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm;
+  }
+
+  @media print {
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+    body { font-size: 11pt; }
+    .cover { min-height: 100vh; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--gray-800);
+    line-height: 1.6;
+    background: #fff;
+    font-size: 13px;
+  }
+
+  /* ========== COVER PAGE ========== */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--primary-dark) 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 80%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 60%);
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -20%;
+    width: 60%;
+    height: 120%;
+    background: radial-gradient(circle, rgba(2,132,199,0.06) 0%, transparent 50%);
+  }
+
+  .cover-content {
+    position: relative;
+    z-index: 2;
+    padding: 60px 50px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    padding: 8px 18px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    width: fit-content;
+    backdrop-filter: blur(10px);
+  }
+
+  .cover-badge .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .cover h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+
+  .cover h1 span {
+    background: linear-gradient(135deg, var(--accent), #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover-subtitle {
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 50px;
+    max-width: 500px;
+    line-height: 1.5;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 50px;
+  }
+
+  .cover-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cover-meta-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .cover-meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .cover-tech {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .cover-tech-tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .cover-footer {
+    position: relative;
+    z-index: 2;
+    padding: 24px 50px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ========== CONTENT PAGES ========== */
+  .content {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 40px 0 16px 0;
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--primary);
+    display: inline-block;
+    letter-spacing: -0.3px;
+  }
+
+  h2 .num {
+    color: var(--primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: 8px;
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-700);
+    margin: 24px 0 10px 0;
+  }
+
+  h3 .icon {
+    color: var(--primary);
+    margin-right: 6px;
+  }
+
+  p {
+    margin-bottom: 12px;
+    color: var(--gray-600);
+    line-height: 1.7;
+  }
+
+  /* ========== TABLES ========== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px 0;
+    font-size: 12px;
+  }
+
+  thead th {
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  thead th:first-child { border-radius: 8px 0 0 0; }
+  thead th:last-child { border-radius: 0 8px 0 0; }
+
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) { background: var(--gray-50); }
+  tbody tr:hover { background: var(--primary-light); }
+
+  td code, p code {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--primary-dark);
+  }
+
+  /* ========== CODE BLOCKS ========== */
+  .code-block {
+    background: var(--gray-900);
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 12px 0 18px 0;
+    border: 1px solid var(--gray-700);
+  }
+
+  .code-block .comment { color: #64748b; }
+  .code-block .keyword { color: #7dd3fc; }
+  .code-block .string { color: #86efac; }
+  .code-block .func { color: #c4b5fd; }
+
+  /* ========== ARCHITECTURE DIAGRAM ========== */
+  .arch-diagram {
+    background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
+    border: 2px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 30px;
+    margin: 18px 0;
+  }
+
+  .arch-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arch-box {
+    background: #fff;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 140px;
+    position: relative;
+  }
+
+  .arch-box.highlight {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  .arch-box.accent {
+    border-color: var(--accent);
+    background: #ecfeff;
+  }
+
+  .arch-box.green {
+    border-color: var(--success);
+    background: #ecfdf5;
+  }
+
+  .arch-box.purple {
+    border-color: #8b5cf6;
+    background: #f5f3ff;
+  }
+
+  .arch-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+  }
+
+  .arch-box-sub {
+    font-size: 10px;
+    color: var(--gray-500);
+    font-weight: 500;
+  }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 18px;
+    margin: 4px 0;
+  }
+
+  .arch-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: center;
+    margin: 8px 0 4px 0;
+  }
+
+  /* ========== INFO BOXES ========== */
+  .info-box {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    border-left: 4px solid;
+  }
+
+  .info-box.blue { background: #eff6ff; border-color: var(--primary); }
+  .info-box.green { background: #ecfdf5; border-color: var(--success); }
+  .info-box.yellow { background: #fffbeb; border-color: var(--warning); }
+  .info-box.red { background: #fef2f2; border-color: var(--danger); }
+
+  .info-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .info-box.blue .info-box-title { color: var(--primary-dark); }
+  .info-box.green .info-box-title { color: #059669; }
+  .info-box.yellow .info-box-title { color: #d97706; }
+  .info-box.red .info-box-title { color: var(--danger); }
+
+  .info-box p {
+    font-size: 12px;
+    margin: 0;
+    color: var(--gray-600);
+  }
+
+  /* ========== FLOW STEPS ========== */
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 14px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .flow-step-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .flow-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .flow-step-connector {
+    width: 2px;
+    height: 20px;
+    background: var(--gray-300);
+  }
+
+  .flow-step-content {
+    padding: 4px 0 16px 0;
+  }
+
+  .flow-step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  .flow-step-desc {
+    font-size: 11.5px;
+    color: var(--gray-500);
+    margin-top: 2px;
+  }
+
+  /* ========== GRID LISTS ========== */
+  .grid-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 14px 0;
+  }
+
+  .grid-list-item {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .grid-list-item-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 2px;
+  }
+
+  .grid-list-item-desc {
+    font-size: 11px;
+    color: var(--gray-500);
+  }
+
+  /* ========== ENDPOINT ROWS ========== */
+  .endpoint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    background: #fff;
+  }
+
+  .endpoint-method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 48px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .method-get { background: #dcfce7; color: #166534; }
+  .method-post { background: #dbeafe; color: #1e40af; }
+  .method-put { background: #fef3c7; color: #92400e; }
+  .method-delete { background: #fee2e2; color: #991b1b; }
+
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--gray-700);
+    min-width: 200px;
+  }
+
+  .endpoint-desc {
+    color: var(--gray-500);
+    font-size: 11.5px;
+  }
+
+  /* ========== TOC ========== */
+  .toc {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 20px 0 30px 0;
+  }
+
+  .toc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 14px;
+  }
+
+  .toc-list {
+    list-style: none;
+    columns: 2;
+    column-gap: 30px;
+  }
+
+  .toc-list li {
+    padding: 4px 0;
+    font-size: 12px;
+    color: var(--gray-600);
+    break-inside: avoid;
+  }
+
+  .toc-list li a {
+    text-decoration: none;
+    color: var(--gray-600);
+    transition: color 0.15s;
+  }
+
+  .toc-list li a:hover { color: var(--primary); }
+
+  .toc-list li .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--primary);
+    margin-right: 6px;
+    font-size: 11px;
+  }
+
+  /* ========== SECTION DIVIDER ========== */
+  .section-divider {
+    margin: 30px 0;
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gray-200), transparent);
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="cover">
+  <div class="cover-content">
+    <div class="cover-badge">
+      <span class="dot"></span>
+      Technical Documentation
+    </div>
+    <h1>AI<span>FSR</span></h1>
+    <h1 style="font-size:28px;font-weight:400;color:rgba(255,255,255,0.6);margin-bottom:8px;">Food Safety & Regulatory</h1>
+    <h1 style="font-size:28px;font-weight:400;color:rgba(255,255,255,0.6);">Compliance Platform</h1>
+    <p class="cover-subtitle">
+      AI-powered compliance platform for the food industry. Automate audits, track incidents, manage CAPA, and ensure FSSAI, HACCP, and ISO 22000 compliance.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Version</span>
+        <span class="cover-meta-value">2.0.0</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Date</span>
+        <span class="cover-meta-value">August 2026</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Status</span>
+        <span class="cover-meta-value">Production</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Classification</span>
+        <span class="cover-meta-value">Internal</span>
+      </div>
+    </div>
+    <div class="cover-tech">
+      <span class="cover-tech-tag">Node.js</span>
+      <span class="cover-tech-tag">Express.js</span>
+      <span class="cover-tech-tag">PostgreSQL</span>
+      <span class="cover-tech-tag">Groq / Llama 3.3</span>
+      <span class="cover-tech-tag">JWT Auth</span>
+      <span class="cover-tech-tag">Railway</span>
+    </div>
+  </div>
+  <div class="cover-footer">
+    <span>AI-FSR &mdash; Confidential</span>
+    <span>https://ai-fsr-production.up.railway.app</span>
+  </div>
+</div>
+
+<!-- ==================== TABLE OF CONTENTS ==================== -->
+<div class="content page-break">
+
+  <h2><span class="num">00</span> Table of Contents</h2>
+
+  <div class="toc">
+    <ol class="toc-list">
+      <li><span class="toc-num">01</span> <a href="#overview">Product Overview</a></li>
+      <li><span class="toc-num">02</span> <a href="#architecture">System Architecture</a></li>
+      <li><span class="toc-num">03</span> <a href="#techstack">Technology Stack</a></li>
+      <li><span class="toc-num">04</span> <a href="#structure">Project Structure</a></li>
+      <li><span class="toc-num">05</span> <a href="#database">Database Schema</a></li>
+      <li><span class="toc-num">06</span> <a href="#rbac">Role-Based Access Control</a></li>
+      <li><span class="toc-num">07</span> <a href="#auth">Authentication Flow</a></li>
+      <li><span class="toc-num">08</span> <a href="#api">API Endpoints</a></li>
+      <li><span class="toc-num">09</span> <a href="#ai">AI Assistant</a></li>
+      <li><span class="toc-num">10</span> <a href="#isolation">Organization Isolation</a></li>
+      <li><span class="toc-num">11</span> <a href="#adapter">Database Adapter</a></li>
+      <li><span class="toc-num">12</span> <a href="#env">Environment Variables</a></li>
+      <li><span class="toc-num">13</span> <a href="#deploy">Deployment</a></li>
+      <li><span class="toc-num">14</span> <a href="#security">Security</a></li>
+      <li><span class="toc-num">15</span> <a href="#frontend">Frontend Architecture</a></li>
+    </ol>
+  </div>
+
+  <!-- ==================== 1. OVERVIEW ==================== -->
+  <h2 id="overview"><span class="num">01</span> Product Overview</h2>
+
+  <p><strong>AI-FSR</strong> is an AI-powered Food Safety & Regulatory Compliance Platform designed for the food industry. It automates audits, tracks incidents, manages CAPA (Corrective and Preventive Actions), and ensures compliance with FSSAI, HACCP, and ISO 22000 regulations.</p>
+
+  <div class="grid-list">
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Dashboard</div>
+      <div class="grid-list-item-desc">Real-time compliance scores, trends, alerts</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Audit Management</div>
+      <div class="grid-list-item-desc">Schedule, conduct, track audits</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Incident Tracking</div>
+      <div class="grid-list-item-desc">Report, investigate, resolve</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">CAPA Management</div>
+      <div class="grid-list-item-desc">Corrective & preventive actions</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Checklists</div>
+      <div class="grid-list-item-desc">Daily, weekly, monthly inspections</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">AI Assistant</div>
+      <div class="grid-list-item-desc">Groq-powered compliance chat</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Team Messaging</div>
+      <div class="grid-list-item-desc">Admin-member chat system</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Multi-Organization</div>
+      <div class="grid-list-item-desc">Plant-level data isolation</div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. ARCHITECTURE ==================== -->
+  <h2 id="architecture" class="page-break"><span class="num">02</span> System Architecture</h2>
+
+  <div class="arch-diagram">
+    <div class="arch-label">CLIENT LAYER</div>
+    <div class="arch-row">
+      <div class="arch-box highlight">
+        <div class="arch-box-title">Web Browser</div>
+        <div class="arch-box-sub">HTML + CSS + JavaScript</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">&darr; HTTP / REST API</div>
+
+    <div class="arch-label">APPLICATION LAYER</div>
+    <div class="arch-row">
+      <div class="arch-box" style="min-width:400px;">
+        <div class="arch-box-title">Express.js Server</div>
+        <div class="arch-box-sub">JWT Auth &bull; Rate Limiting &bull; CORS &bull; Route Handling</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">&darr;</div>
+
+    <div class="arch-label">SERVICE LAYER</div>
+    <div class="arch-row">
+      <div class="arch-box accent">
+        <div class="arch-box-title">Auth Service</div>
+        <div class="arch-box-sub">JWT &bull; bcrypt &bull; OTP</div>
+      </div>
+      <div class="arch-box green">
+        <div class="arch-box-title">Core API</div>
+        <div class="arch-box-sub">CRUD &bull; Org Isolation</div>
+      </div>
+      <div class="arch-box purple">
+        <div class="arch-box-title">AI Service</div>
+        <div class="arch-box-sub">Groq SDK &bull; SSE Streaming</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">&darr;</div>
+
+    <div class="arch-label">DATA LAYER</div>
+    <div class="arch-row">
+      <div class="arch-box highlight">
+        <div class="arch-box-title">PostgreSQL</div>
+        <div class="arch-box-sub">Neon Cloud (Production)</div>
+      </div>
+      <div class="arch-box" style="border-color:var(--gray-300);">
+        <div class="arch-box-title">SQLite</div>
+        <div class="arch-box-sub">sql.js (Local Dev)</div>
+      </div>
+      <div class="arch-box accent">
+        <div class="arch-box-title">Groq API</div>
+        <div class="arch-box-sub">Llama 3.3 70B</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px; text-align:center;">
+      <div class="arch-label">HOSTING</div>
+      <div class="arch-row">
+        <div class="arch-box" style="border-color:#7c3aed;background:#f5f3ff;">
+          <div class="arch-box-title">Railway</div>
+          <div class="arch-box-sub">Production Deployment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 3. TECH STACK ==================== -->
+  <h2 id="techstack"><span class="num">03</span> Technology Stack</h2>
+
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Frontend</strong></td><td>HTML5, CSS3, Vanilla JS</td><td>UI rendering, standalone pages</td></tr>
+      <tr><td><strong>Backend</strong></td><td>Node.js v18+ / Express.js</td><td>REST API, routing, middleware</td></tr>
+      <tr><td><strong>Database</strong></td><td>PostgreSQL (Neon)</td><td>Production data storage</td></tr>
+      <tr><td><strong>Local DB</strong></td><td>SQLite (sql.js)</td><td>Local development fallback</td></tr>
+      <tr><td><strong>Authentication</strong></td><td>JWT / bcrypt.js</td><td>Token auth, password hashing</td></tr>
+      <tr><td><strong>AI Assistant</strong></td><td>Groq SDK / Llama 3.3 70B</td><td>LLM inference, streaming</td></tr>
+      <tr><td><strong>Streaming</strong></td><td>Server-Sent Events (SSE)</td><td>Real-time AI response</td></tr>
+      <tr><td><strong>Hosting</strong></td><td>Railway</td><td>Production deployment</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== 4. PROJECT STRUCTURE ==================== -->
+  <h2 id="structure" class="page-break"><span class="num">04</span> Project Structure</h2>
+
+  <div class="code-block">
+<span class="comment">// Backend</span>
+backend/
+  server.js              <span class="comment"># Express entry, route registration</span>
+  db/database.js         <span class="comment"># PostgreSQL/SQLite dual-mode adapter</span>
+  middleware/auth.js      <span class="comment"># JWT authenticate + role authorize</span>
+  routes/
+    auth.js              <span class="comment"># Login, signup, OTP, password</span>
+    organizations.js     <span class="comment"># Org CRUD</span>
+    users.js             <span class="comment"># User CRUD</span>
+    audits.js            <span class="comment"># Audit CRUD</span>
+    incidents.js         <span class="comment"># Incident CRUD</span>
+    capa.js              <span class="comment"># CAPA CRUD</span>
+    dashboard.js         <span class="comment"># Dashboard stats</span>
+    checklist.js         <span class="comment"># Checklist CRUD + stats</span>
+    invite.js            <span class="comment"># Team invite, members</span>
+    assistant.js         <span class="comment"># AI chat (Groq SSE)</span>
+    messages.js          <span class="comment"># Team messaging</span>
+
+<span class="comment">// Frontend</span>
+website/
+  index.html             <span class="comment"># Dashboard</span>
+  login.html             <span class="comment"># Login / Signup</span>
+  verify.html            <span class="comment"># 2FA OTP</span>
+  landing.html           <span class="comment"># Public landing</span>
+  organizations.html     <span class="comment"># Orgs + team + chat</span>
+  audit.html             <span class="comment"># Audit management</span>
+  incidents.html         <span class="comment"># Incident tracking</span>
+  capa.html              <span class="comment"># CAPA kanban</span>
+  checklist.html         <span class="comment"># Checklists</span>
+  assistant.html         <span class="comment"># AI assistant</span>
+  styles.css             <span class="comment"># Design system</span>
+  app.js                 <span class="comment"># Nav, sidebar, auth</span>
+  api.js                 <span class="comment"># API client</span>
+  </div>
+
+  <!-- ==================== 5. DATABASE SCHEMA ==================== -->
+  <h2 id="database"><span class="num">05</span> Database Schema</h2>
+
+  <h3><span class="icon">&#9632;</span> Core Tables</h3>
+
+  <table>
+    <thead>
+      <tr><th>Table</th><th>Key Columns</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>organizations</code></td><td>name, plant, fssai_license, status, compliance_score</td><td>Organization / plant records</td></tr>
+      <tr><td><code>users</code></td><td>name, email, password, role, organization_id</td><td>User accounts</td></tr>
+      <tr><td><code>audits</code></td><td>audit_id, type, score, status, organization_id</td><td>Audit records</td></tr>
+      <tr><td><code>incidents</code></td><td>incident_id, severity, status, assigned_to</td><td>Incident reports</td></tr>
+      <tr><td><code>capa</code></td><td>capa_id, type, priority, progress, assigned_to</td><td>CAPA tracking</td></tr>
+      <tr><td><code>checklist</code></td><td>title, category, frequency, status, assignee</td><td>Compliance checklists</td></tr>
+      <tr><td><code>messages</code></td><td>sender_id, receiver_id, message, read</td><td>Team messaging</td></tr>
+      <tr><td><code>documents</code></td><td>title, type, version, status</td><td>Document management</td></tr>
+      <tr><td><code>labels</code></td><td>product_name, status, score</td><td>Label validation</td></tr>
+      <tr><td><code>notifications</code></td><td>title, message, type, read</td><td>User notifications</td></tr>
+      <tr><td><code>activity_log</code></td><td>user_id, action, details</td><td>Audit trail</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box blue">
+    <div class="info-box-title">Multi-Plant Support</div>
+    <p>Organizations can have multiple plants. Users across plants of the same organization see each other's data via name-based query matching.</p>
+  </div>
+
+  <!-- ==================== 6. RBAC ==================== -->
+  <h2 id="rbac" class="page-break"><span class="num">06</span> Role-Based Access Control</h2>
+
+  <h3><span class="icon">&#9632;</span> System Roles</h3>
+
+  <table>
+    <thead>
+      <tr><th>Role</th><th>Description</th><th>Permissions</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>super_admin</code></td><td>Platform super admin</td><td>Full access to everything</td></tr>
+      <tr><td><code>admin</code></td><td>Organization admin</td><td>Manage org, members, all features</td></tr>
+      <tr><td><code>food_safety_officer</code></td><td>FSO</td><td>Checklists, audits, incidents</td></tr>
+      <tr><td><code>auditor</code></td><td>Internal/external auditor</td><td>Audits, read-only</td></tr>
+      <tr><td><code>viewer</code></td><td>Read-only user</td><td>View only</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="icon">&#9632;</span> Industry-Specific Roles</h3>
+
+  <div class="grid-list">
+    <div class="grid-list-item"><div class="grid-list-item-title">QA Manager</div><div class="grid-list-item-desc">Quality Assurance Manager</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Quality Inspector</div><div class="grid-list-item-desc">Quality Inspection</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Lab Technician</div><div class="grid-list-item-desc">Laboratory Operations</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Hygiene Supervisor</div><div class="grid-list-item-desc">Hygiene Management</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Production Manager</div><div class="grid-list-item-desc">Production Oversight</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Plant Manager</div><div class="grid-list-item-desc">Plant Operations</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Warehouse Manager</div><div class="grid-list-item-desc">Warehouse Operations</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Supply Chain</div><div class="grid-list-item-desc">Supply Chain Management</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Regulatory Affairs</div><div class="grid-list-item-desc">Regulatory Compliance</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">CAPA Manager</div><div class="grid-list-item-desc">CAPA Administration</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Document Controller</div><div class="grid-list-item-desc">Document Management</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Internal Auditor</div><div class="grid-list-item-desc">Internal Audit Operations</div></div>
+  </div>
+
+  <!-- ==================== 7. AUTH ==================== -->
+  <h2 id="auth"><span class="num">07</span> Authentication Flow</h2>
+
+  <h3><span class="icon">&#9632;</span> Signup Flow</h3>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">1</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">User submits signup form</div>
+        <div class="flow-step-desc">Name, email, password, organization name</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">2</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Backend creates organization</div>
+        <div class="flow-step-desc">INSERT INTO organizations with FSSAI pending status</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">3</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Backend creates user</div>
+        <div class="flow-step-desc">Password hashed with bcrypt (10 rounds), role = admin</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">4</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">JWT token returned</div>
+        <div class="flow-step-desc">Token includes userId, email, role. Stored in localStorage.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> Login Flow</h3>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">1</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">User enters credentials</div>
+        <div class="flow-step-desc">Email + password</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">2</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Backend validates</div>
+        <div class="flow-step-desc">bcrypt compare, check active status</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">3</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">JWT token + user object returned</div>
+        <div class="flow-step-desc">All subsequent requests include Authorization: Bearer token</div>
+      </div>
+    </div>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> Password Reset Flow</h3>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">1</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">User enters email</div>
+        <div class="flow-step-desc">POST /api/auth/forgot-password &rarr; generates 6-digit OTP</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">2</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">OTP verification</div>
+        <div class="flow-step-desc">POST /api/auth/verify-reset-otp &rarr; returns reset_token (JWT, 15min)</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">3</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Password reset</div>
+        <div class="flow-step-desc">POST /api/auth/reset-password with new password + reset_token</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 8. API ENDPOINTS ==================== -->
+  <h2 id="api" class="page-break"><span class="num">08</span> API Endpoints</h2>
+
+  <h3><span class="icon">&#9632;</span> Authentication</h3>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/signup</span><span class="endpoint-desc">Create account + org</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/login</span><span class="endpoint-desc">Login</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/verify</span><span class="endpoint-desc">Verify JWT</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/auth/me</span><span class="endpoint-desc">Current user</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/change-password</span><span class="endpoint-desc">Change password</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/forgot-password</span><span class="endpoint-desc">Send reset OTP</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/verify-reset-otp</span><span class="endpoint-desc">Verify reset OTP</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/auth/reset-password</span><span class="endpoint-desc">Reset password</span></div>
+
+  <h3><span class="icon">&#9632;</span> Core Resources</h3>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/organizations</span><span class="endpoint-desc">List orgs (org-isolated)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/users</span><span class="endpoint-desc">List users (org-isolated)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/audits</span><span class="endpoint-desc">List audits (org-isolated)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/incidents</span><span class="endpoint-desc">List incidents (org-isolated)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/capa</span><span class="endpoint-desc">List CAPA (org-isolated)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/dashboard</span><span class="endpoint-desc">Dashboard stats</span></div>
+
+  <h3><span class="icon">&#9632;</span> Checklist</h3>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/checklist</span><span class="endpoint-desc">List (filter: frequency, category)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/checklist/stats</span><span class="endpoint-desc">Compliance stats</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/checklist</span><span class="endpoint-desc">Add item</span></div>
+  <div class="endpoint"><span class="endpoint-method method-put">PUT</span><span class="endpoint-path">/api/checklist/:id</span><span class="endpoint-desc">Update item</span></div>
+  <div class="endpoint"><span class="endpoint-method method-delete">DEL</span><span class="endpoint-path">/api/checklist/:id</span><span class="endpoint-desc">Delete item</span></div>
+
+  <h3><span class="icon">&#9632;</span> Team</h3>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/invite</span><span class="endpoint-desc">Invite member</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/invite/members</span><span class="endpoint-desc">List members</span></div>
+  <div class="endpoint"><span class="endpoint-method method-put">PUT</span><span class="endpoint-path">/api/invite/members/:id/role</span><span class="endpoint-desc">Update role</span></div>
+  <div class="endpoint"><span class="endpoint-method method-delete">DEL</span><span class="endpoint-path">/api/invite/members/:id</span><span class="endpoint-desc">Remove member</span></div>
+
+  <h3><span class="icon">&#9632;</span> Messages &amp; AI</h3>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/messages/conversations</span><span class="endpoint-desc">List conversations</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/messages/:userId</span><span class="endpoint-desc">Send message</span></div>
+  <div class="endpoint"><span class="endpoint-method method-post">POST</span><span class="endpoint-path">/api/assistant/chat</span><span class="endpoint-desc">AI chat (SSE streaming)</span></div>
+  <div class="endpoint"><span class="endpoint-method method-get">GET</span><span class="endpoint-path">/api/health</span><span class="endpoint-desc">Health check</span></div>
+
+  <!-- ==================== 9. AI ASSISTANT ==================== -->
+  <h2 id="ai" class="page-break"><span class="num">09</span> AI Assistant</h2>
+
+  <div class="info-box blue">
+    <div class="info-box-title">Model Configuration</div>
+    <p><strong>Provider:</strong> Groq (groq-sdk v1.5.0)<br>
+    <strong>Model:</strong> llama-3.3-70b-versatile<br>
+    <strong>Response:</strong> Server-Sent Events (SSE) streaming</p>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> System Prompt</h3>
+  <p>The AI assistant has a comprehensive system prompt covering:</p>
+  <div class="grid-list">
+    <div class="grid-list-item"><div class="grid-list-item-title">FSSAI Compliance</div><div class="grid-list-item-desc">Indian food safety regulations</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">HACCP</div><div class="grid-list-item-desc">7 principles, implementation</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">ISO 22000</div><div class="grid-list-item-desc">Food safety management systems</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">GMP / GHP</div><div class="grid-list-item-desc">Good manufacturing &amp; hygiene</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">CAPA</div><div class="grid-list-item-desc">Corrective &amp; preventive actions</div></div>
+    <div class="grid-list-item"><div class="grid-list-item-title">Risk Assessment</div><div class="grid-list-item-desc">Risk frameworks &amp; analysis</div></div>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> Streaming Architecture</h3>
+  <div class="code-block">
+<span class="comment">// Client sends POST request</span>
+POST /api/assistant/chat
+{
+  <span class="string">"messages"</span>: [
+    { <span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"What is HACCP?"</span> }
+  ]
+}
+
+<span class="comment">// Server responds with SSE stream</span>
+Content-Type: text/event-stream
+
+data: {<span class="string">"content"</span>: <span class="string">"HACCP"</span>}
+data: {<span class="string">"content"</span>: <span class="string">" stands for"</span>}
+data: {<span class="string">"content"</span>: <span class="string">" Hazard"</span>}
+...
+data: [DONE]
+  </div>
+
+  <!-- ==================== 10. ORG ISOLATION ==================== -->
+  <h2 id="isolation"><span class="num">10</span> Organization Isolation</h2>
+
+  <p>All data is isolated by organization. Users only see data belonging to their organization.</p>
+
+  <h3><span class="icon">&#9632;</span> Implementation</h3>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">1</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">User has organization_id FK</div>
+        <div class="flow-step-desc">Linked to organizations table via foreign key</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">2</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Backend resolves org on login</div>
+        <div class="flow-step-desc">JWT token contains userId, org resolved from DB</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">3</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">All queries filter by org</div>
+        <div class="flow-step-desc">WHERE organization_id = ANY(orgIds)</div>
+      </div>
+    </div>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> Multi-Plant Query Pattern</h3>
+  <div class="code-block">
+<span class="comment">-- Find all org IDs with same name (all plants)</span>
+<span class="keyword">SELECT</span> id <span class="keyword">FROM</span> organizations <span class="keyword">WHERE</span> name = <span class="string">$1</span>
+
+<span class="comment">-- Query across all plants of same org</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> checklist
+<span class="keyword">WHERE</span> organization_id = <span class="keyword">ANY</span>(<span class="string">$1</span>)
+  </div>
+
+  <!-- ==================== 11. DB ADAPTER ==================== -->
+  <h2 id="adapter"><span class="num">11</span> Database Adapter</h2>
+
+  <div class="info-box green">
+    <div class="info-box-title">Dual-Mode Support</div>
+    <p>The database.js module supports both PostgreSQL and SQLite transparently. No code changes needed between environments.</p>
+  </div>
+
+  <div class="code-block">
+<span class="comment">// database.js logic</span>
+<span class="keyword">const</span> USE_PG = !!process.env.DATABASE_URL;
+
+<span class="keyword">if</span> (USE_PG) {
+  <span class="comment">// PostgreSQL mode (production)</span>
+  <span class="comment">// Uses pg Pool, native SQL syntax</span>
+} <span class="keyword">else</span> {
+  <span class="comment">// SQLite mode (local development)</span>
+  <span class="comment">// Converts PostgreSQL syntax:</span>
+  <span class="comment">//   $1, $2  &rarr;  ? placeholders</span>
+  <span class="comment">//   RETURNING  &rarr;  INSERT + SELECT</span>
+  <span class="comment">//   NOW()  &rarr;  CURRENT_TIMESTAMP</span>
+  <span class="comment">//   FILTER (WHERE ...)  &rarr;  SUM(CASE WHEN ...)</span>
+  <span class="comment">//   ANY($1)  &rarr;  IN (?, ?, ...)</span>
+  <span class="comment">//   ::int  &rarr;  CAST(... AS INTEGER)</span>
+}
+  </div>
+
+  <!-- ==================== 12. ENV VARS ==================== -->
+  <h2 id="env" class="page-break"><span class="num">12</span> Environment Variables</h2>
+
+  <table>
+    <thead>
+      <tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>PORT</code></td><td>No</td><td>3000</td><td>Server port</td></tr>
+      <tr><td><code>DATABASE_URL</code></td><td>Yes (prod)</td><td>&mdash;</td><td>PostgreSQL connection string (Neon)</td></tr>
+      <tr><td><code>GROQ_API_KEY</code></td><td>Yes</td><td>&mdash;</td><td>Groq API key for AI assistant</td></tr>
+      <tr><td><code>JWT_SECRET</code></td><td>Yes</td><td>fallback string</td><td>JWT signing secret</td></tr>
+      <tr><td><code>JWT_EXPIRES_IN</code></td><td>No</td><td>24h</td><td>Token expiry duration</td></tr>
+      <tr><td><code>NODE_ENV</code></td><td>No</td><td>development</td><td>production / development</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== 13. DEPLOYMENT ==================== -->
+  <h2 id="deploy"><span class="num">13</span> Deployment</h2>
+
+  <h3><span class="icon">&#9632;</span> Railway (Production)</h3>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">1</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Push code to GitHub</div>
+        <div class="flow-step-desc">git push origin main</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">2</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Connect repo to Railway</div>
+        <div class="flow-step-desc">railway.app &rarr; New Project &rarr; Deploy from GitHub</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">3</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Set environment variables</div>
+        <div class="flow-step-desc">DATABASE_URL, GROQ_API_KEY, JWT_SECRET in Variables tab</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-line"><div class="flow-step-num">4</div><div class="flow-step-connector"></div></div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Auto-deploy</div>
+        <div class="flow-step-desc">Railway builds and deploys on every push</div>
+      </div>
+    </div>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> Local Development</h3>
+  <div class="code-block">
+<span class="func">$</span> git clone https://github.com/harishkumar2317/ai-fsr.git
+<span class="func">$</span> cd ai-fsr/backend
+<span class="func">$</span> npm install
+<span class="func">$</span> node server.js
+<span class="comment"># Opens at http://localhost:3000</span>
+<span class="comment"># No DATABASE_URL needed &mdash; falls back to SQLite</span>
+  </div>
+
+  <!-- ==================== 14. SECURITY ==================== -->
+  <h2 id="security"><span class="num">14</span> Security</h2>
+
+  <div class="grid-list">
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Password Hashing</div>
+      <div class="grid-list-item-desc">bcrypt with 10 salt rounds</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">JWT Tokens</div>
+      <div class="grid-list-item-desc">Configurable expiry (24h default)</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Rate Limiting</div>
+      <div class="grid-list-item-desc">200 req/15min general, 50 for login</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">CORS</div>
+      <div class="grid-list-item-desc">Configured for prod + dev origins</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Data Isolation</div>
+      <div class="grid-list-item-desc">Org-level query filtering</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">RBAC</div>
+      <div class="grid-list-item-desc">Role-based access control</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">Secrets in Env</div>
+      <div class="grid-list-item-desc">No hardcoded credentials</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">DB Encryption</div>
+      <div class="grid-list-item-desc">Neon SSL (verify-full)</div>
+    </div>
+  </div>
+
+  <!-- ==================== 15. FRONTEND ==================== -->
+  <h2 id="frontend" class="page-break"><span class="num">15</span> Frontend Architecture</h2>
+
+  <h3><span class="icon">&#9632;</span> Design System</h3>
+  <table>
+    <thead>
+      <tr><th>Property</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Primary Color</td><td><code>#0284c7</code> (Sky Blue)</td></tr>
+      <tr><td>Sidebar</td><td><code>#0d1b2e</code> (Dark Navy)</td></tr>
+      <tr><td>Body Font</td><td>Inter (300, 400, 500, 600, 700)</td></tr>
+      <tr><td>Heading Font</td><td>DM Sans (500, 700)</td></tr>
+      <tr><td>Mono Font</td><td>JetBrains Mono</td></tr>
+      <tr><td>Responsive</td><td>Mobile (&lt;480px), Tablet (&lt;768px), Desktop (&lt;1200px)</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="icon">&#9632;</span> Page Architecture</h3>
+  <p>Each page is a standalone HTML file sharing three core assets:</p>
+  <div class="grid-list">
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">styles.css</div>
+      <div class="grid-list-item-desc">Design system with CSS variables, responsive breakpoints</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">app.js</div>
+      <div class="grid-list-item-desc">Navigation, sidebar, auth check, theme, profile, toast</div>
+    </div>
+    <div class="grid-list-item">
+      <div class="grid-list-item-title">api.js</div>
+      <div class="grid-list-item-desc">API client with all endpoints + streaming support</div>
+    </div>
+  </div>
+
+  <h3><span class="icon">&#9632;</span> Auth Persistence</h3>
+  <div class="info-box yellow">
+    <div class="info-box-title">localStorage</div>
+    <p>JWT token and user data stored in localStorage (persists across sessions). Auto-redirect to login if no token found.</p>
+  </div>
+
+  <div style="text-align:center; padding:40px 0 20px 0; color:var(--gray-400); font-size:11px;">
+    <hr style="border:none;height:1px;background:var(--gray-200);margin-bottom:16px;">
+    AI-FSR Technical Documentation &mdash; Version 2.0.0 &mdash; August 2026<br>
+    Confidential &mdash; For Internal Use Only
+  </div>
+
+</div>
+
+</body>
+</html>
